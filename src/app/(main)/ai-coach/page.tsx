@@ -7,6 +7,7 @@ import { useAIChat } from "@/hooks/useAIChat";
 import CoachSidebar from "@/components/ai/CoachSidebar";
 import CoachTextWindow from "@/components/ai/CoachTextWindow";
 import CoachTextArea from "@/components/ai/CoachTextArea";
+import { apiFetch } from "@/services/api/apiFetch";
 
 const SUGGESTIONS = [
   { icon: TrendingUp, label: "How's my bench press progressing?", message: "How's my bench press progressing?" },
@@ -45,8 +46,18 @@ export default function AICoachPage() {
     sendMessage(trimmed);
   };
 
-  const handleWorkoutStart = () => {
-    if (lastWorkoutAction) router.push("/workout");
+  const handleWorkoutStart = async () => {
+    if (!lastWorkoutAction) return;
+
+    await apiFetch("/api/workouts/draft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: lastWorkoutAction.name,
+        exercises: lastWorkoutAction.exercises,
+      }),
+    });
+    router.push("/workout");
   };
 
   const handleWorkoutRecreate = () => {

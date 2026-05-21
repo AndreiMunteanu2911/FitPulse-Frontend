@@ -19,15 +19,81 @@ export interface ConversationSummary {
 }
 
 export interface WorkoutExerciseSummary {
+  exerciseId?: string;
   name: string;
   sets: { reps: number; weight: number }[];
 }
 
 export interface WorkoutAction {
   type: "workout_created";
-  workoutId: string;
+  workoutId?: string;
   name: string;
   exercises: WorkoutExerciseSummary[];
+}
+
+function toWorkoutAction(value: unknown): WorkoutAction | null {
+  if (!value || typeof value !== "object") return null;
+
+  const data = value as Record<string, unknown>;
+  if (data.action !== "workout_created") return null;
+  if (typeof data.name !== "string") return null;
+
+  return {
+    type: "workout_created",
+    workoutId: typeof data.workoutId === "string" ? data.workoutId : undefined,
+    name: data.name,
+    exercises: Array.isArray(data.exercises)
+      ? data.exercises as WorkoutExerciseSummary[]
+      : [],
+  };
+}
+
+function stripToolCallText(content: string): string {
+  return content
+    .replace(/<\|tool_call_start\|>[\s\S]*?(?:<\|tool_call_end\|>|$)/g, "")
+    .replace(/\[created_workout\([^\]]*\)\]/g, "")
+    .trim();
+}
+
+function extractWorkoutAction(content: string): {
+  content: string;
+  action: WorkoutAction | null;
+} {
+  let action: WorkoutAction | null = null;
+  const visibleLines: string[] = [];
+
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith("{") && trimmed.includes('"workout_created"')) {
+      try {
+        const parsedAction = toWorkoutAction(JSON.parse(trimmed));
+        if (parsedAction) {
+          action = parsedAction;
+          continue;
+        }
+      } catch {
+        // Keep malformed or incomplete JSON out of the visible chat while streaming.
+        continue;
+      }
+    }
+
+    visibleLines.push(line);
+  }
+
+  return {
+    content: stripToolCallText(visibleLines.join("\n")),
+    action,
+  };
+}
+
+function workoutActionMarker(action: WorkoutAction): string {
+  return JSON.stringify({
+    action: "workout_created",
+    workoutId: action.workoutId,
+    name: action.name,
+    exercises: action.exercises,
+  });
 }
 
 interface UseAIChatReturn {
@@ -132,38 +198,30 @@ export function useAIChat(): UseAIChatReturn {
       const res = await fetch(`/api/ai/conversations/${id}`);
       if (!res.ok) return;
       const data = await res.json();
-      const loadedMessages: ChatMessage[] = (data.messages ?? []).map((m: Record<string, unknown>) => ({
-        role: m.role as "user" | "assistant",
-        content: m.content as string,
-        createdAt: m.created_at as string,
-      }));
+      let loadedWorkoutAction: WorkoutAction | null = null;
+      const loadedMessages: ChatMessage[] = (data.messages ?? []).map((m: Record<string, unknown>) => {
+        const role = m.role as "user" | "assistant";
+        const rawContent = m.content as string;
+        const extracted = role === "assistant"
+          ? extractWorkoutAction(rawContent)
+          : { content: rawContent, action: null };
+
+        if (extracted.action) {
+          loadedWorkoutAction = extracted.action;
+        }
+
+        return {
+          role,
+          content: extracted.content,
+          createdAt: m.created_at as string,
+        };
+      });
       setMessages(loadedMessages);
       setConversationId(id);
       savedCountRef.current = loadedMessages.length;
-      setLastWorkoutAction(null);
+      setLastWorkoutAction(loadedWorkoutAction);
       setError(null);
       setIsStreaming(false);
-
-      // Parse last message for workout action if it's an assistant message
-      const lastMsg = loadedMessages[loadedMessages.length - 1];
-      if (lastMsg?.role === "assistant") {
-        const actionMatch = lastMsg.content.match(
-          /\n\{"action":\s*"workout_created"[^}]*\}/,
-        );
-        if (actionMatch) {
-          try {
-            const actionData = JSON.parse(actionMatch[0].trim());
-            setLastWorkoutAction({
-              type: "workout_created",
-              workoutId: actionData.workoutId,
-              name: actionData.name,
-              exercises: actionData.exercises ?? [],
-            });
-          } catch {
-            // ignore
-          }
-        }
-      }
     } catch {
       // Silently fail
     }
@@ -278,38 +336,18 @@ export function useAIChat(): UseAIChatReturn {
             }
 
             if (parsed.action === "workout_created") {
-              workoutAction = {
-                type: "workout_created",
-                workoutId: parsed.workoutId,
-                name: parsed.name,
-                exercises: parsed.exercises ?? [],
-              };
+              workoutAction = toWorkoutAction(parsed);
               continue;
             }
 
             if (parsed.delta) {
               fullContent += parsed.delta;
 
-              const actionMatch = fullContent.match(
-                /\n\{"action":\s*"workout_created"/,
-              );
-              if (actionMatch) {
-                const jsonStr = fullContent.slice(actionMatch.index);
-                try {
-                  const actionData = JSON.parse(jsonStr.trim());
-                  if (actionData.action === "workout_created") {
-                    workoutAction = {
-                      type: "workout_created",
-                      workoutId: actionData.workoutId,
-                      name: actionData.name,
-                      exercises: actionData.exercises ?? [],
-                    };
-                    fullContent = fullContent.slice(0, actionMatch.index).trim();
-                  }
-                } catch {
-                  // Incomplete JSON
-                }
+              const extracted = extractWorkoutAction(fullContent);
+              if (extracted.action) {
+                workoutAction = extracted.action;
               }
+              const visibleContent = extracted.content;
 
               const idx = assistantIdxRef.current;
               if (idx >= 0) {
@@ -317,7 +355,7 @@ export function useAIChat(): UseAIChatReturn {
                   const updated = [...prev];
                   updated[idx] = {
                     ...updated[idx],
-                    content: fullContent,
+                    content: visibleContent,
                   };
                   return updated;
                 });
@@ -330,6 +368,23 @@ export function useAIChat(): UseAIChatReturn {
       }
 
       if (workoutAction) {
+        const extracted = extractWorkoutAction(fullContent);
+        const visibleContent = extracted.content ||
+          `I prepared "${workoutAction.name}" for you. Click Start Workout when you want me to create it.`;
+        fullContent = visibleContent;
+
+        const idx = assistantIdxRef.current;
+        if (idx >= 0) {
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[idx] = {
+              ...updated[idx],
+              content: visibleContent,
+            };
+            return updated;
+          });
+        }
+
         setLastWorkoutAction(workoutAction);
       }
 
@@ -350,10 +405,13 @@ export function useAIChat(): UseAIChatReturn {
       // Save to DB
       if (convId) {
         // Get the final messages state
+        const assistantContent = workoutAction
+          ? `${fullContent}\n${workoutActionMarker(workoutAction)}`
+          : fullContent || "I wasn't able to generate a response.";
         const finalMsgs = [
           ...messages,
           userMsg,
-          { role: "assistant" as const, content: fullContent || "I wasn't able to generate a response." },
+          { role: "assistant" as const, content: assistantContent },
         ];
         await saveMessagesToDB(convId, finalMsgs);
         await fetchConversations();

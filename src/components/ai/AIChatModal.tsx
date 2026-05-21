@@ -65,7 +65,7 @@ export default function AIChatModal({ onWorkoutStart }: AIChatModalProps) {
   };
 
   const handleWorkoutStart = () => {
-    if (lastWorkoutAction && onWorkoutStart) {
+    if (lastWorkoutAction?.workoutId && onWorkoutStart) {
       onWorkoutStart(lastWorkoutAction.workoutId);
     }
   };

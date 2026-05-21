@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/helper/supabaseServer";
 import { resolveExercises } from "@/helper/resolveExercises";
+import { createDraftWorkoutInDB, type DraftWorkout } from "@/lib/workout-generator";
 
 export async function GET() {
   const supabase = await createSupabaseServerClient();
@@ -40,4 +41,63 @@ export async function GET() {
   };
 
   return NextResponse.json({ workout });
+}
+
+export async function POST(req: Request) {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await req.json().catch(() => null);
+  const name = typeof body?.name === "string" && body.name.trim()
+    ? body.name.trim()
+    : "AI Workout";
+  const exercises = Array.isArray(body?.exercises) ? body.exercises : [];
+
+  const draft: DraftWorkout = {
+    name,
+    exercises: exercises
+      .map((exercise: Record<string, unknown>) => {
+        const exerciseId = typeof exercise.exerciseId === "string"
+          ? exercise.exerciseId
+          : typeof exercise.exercise_id === "string"
+            ? exercise.exercise_id
+            : "";
+
+        const sets = Array.isArray(exercise.sets) ? exercise.sets : [];
+        return {
+          exercise_id: exerciseId,
+          sets: sets.map((set: Record<string, unknown>) => ({
+            reps: Number(set.reps) || 5,
+            weight: Number(set.weight) || 0,
+            is_confirmed: false,
+          })),
+        };
+      })
+      .filter((exercise) => exercise.exercise_id && exercise.sets.length > 0),
+  };
+
+  if (draft.exercises.length === 0) {
+    return NextResponse.json({ error: "Workout must include at least one exercise" }, { status: 400 });
+  }
+
+  try {
+    const { error: deleteError } = await supabase
+      .from("workouts")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("status", "draft");
+
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 });
+    }
+
+    const result = await createDraftWorkoutInDB(supabase, user.id, draft);
+    return NextResponse.json({ workout: { id: result.workoutId, name: result.name } });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to create draft workout" },
+      { status: 500 },
+    );
+  }
 }
