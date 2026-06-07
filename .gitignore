@@ -63,3 +63,6 @@ next-env.d.ts
 /android/app/build/
 /android/local.properties
 *.docx
+/FitPulse-prezentare-licenta-revizuit.pptx
+/backup/FitPulse-prezentare-licenta-revizuit.pptx
+/backup/
