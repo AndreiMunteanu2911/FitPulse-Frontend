@@ -806,7 +806,7 @@ export default function WorkoutPage() {
                                     <div className="mt-6 flex flex-wrap gap-3">
                                         <Button onClick={startWorkout} variant="lime">
                                             <Plus className="size-4" />
-                                            Start empty workout
+                                            Start a new workout
                                         </Button>
                                         <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/80">
                                             <Layers3 className="size-4" />

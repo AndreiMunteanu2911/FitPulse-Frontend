@@ -15,6 +15,11 @@ function capitalize(value: string) {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function formatSet(reps: number, weight: number) {
+    const weightLabel = Number.isInteger(weight) ? weight.toString() : weight.toFixed(1);
+    return weight > 0 ? `${reps} x ${weightLabel} kg` : `${reps} reps`;
+}
+
 export default function WorkoutHistoryCard({
     workout,
     prCount,
@@ -34,6 +39,10 @@ export default function WorkoutHistoryCard({
         (total, exercise) => total + exercise.sets.reduce((sum, set) => sum + set.reps * set.weight, 0),
         0,
     );
+    const totalSets = workout.workout_exercises.reduce(
+        (total, exercise) => total + exercise.sets.length,
+        0,
+    );
     const volumeLabel = totalVolume >= 1000 ? `${(totalVolume / 1000).toFixed(1)}k` : totalVolume.toFixed(0);
 
     let duration: string | null = null;
@@ -47,11 +56,6 @@ export default function WorkoutHistoryCard({
                 : `${Math.floor(minutes / 60)}h${minutes % 60 ? ` ${minutes % 60}m` : ""}`;
         }
     }
-
-    const exerciseNames = workout.workout_exercises
-        .slice(0, 4)
-        .map((exercise) => capitalize(exercise.exercise.name));
-    const extraExercises = workout.workout_exercises.length - exerciseNames.length;
 
     return (
         <article className="card group">
@@ -76,19 +80,52 @@ export default function WorkoutHistoryCard({
                 <div className="mt-4 flex flex-wrap gap-2">
                     <span className="badge badge-soft"><Zap className="size-3.5" />{volumeLabel} kg</span>
                     <span className="badge badge-soft">{workout.workout_exercises.length} exercises</span>
+                    <span className="badge badge-soft">{totalSets} sets</span>
                     {duration && <span className="badge badge-soft"><Clock className="size-3.5" />{duration}</span>}
                     {!!prCount && prCount > 0 && (
-                        <span className="badge bg-[var(--color-success-bg)] text-[var(--color-success)]">
+                        <span className="badge bg-[var(--lime-green)] text-[#232323]">
                             <Sparkles className="size-3.5" />{prCount} PR{prCount === 1 ? "" : "s"}
                         </span>
                     )}
                 </div>
 
-                {exerciseNames.length > 0 && (
-                    <p className="mt-4 line-clamp-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                        {exerciseNames.join(" / ")}
-                        {extraExercises > 0 ? ` / +${extraExercises} more` : ""}
-                    </p>
+                {workout.workout_exercises.length > 0 && (
+                    <div className="mt-5 overflow-hidden rounded-[var(--radius-xl)] bg-[var(--surface-raised)]">
+                        {workout.workout_exercises.map((workoutExercise) => {
+                            const sortedSets = [...workoutExercise.sets].sort((a, b) => a.set_number - b.set_number);
+
+                            return (
+                                <div
+                                    key={workoutExercise.id}
+                                    className="grid gap-2 border-b border-[var(--border)] px-4 py-3 last:border-b-0 sm:grid-cols-[minmax(9rem,0.7fr)_1.3fr] sm:items-center"
+                                >
+                                    <div className="min-w-0">
+                                        <p className="truncate text-sm font-bold text-[var(--foreground)]">
+                                            {capitalize(workoutExercise.exercise.name)}
+                                        </p>
+                                        <p className="mt-0.5 text-[11px] font-semibold text-[var(--muted-foreground)]">
+                                            {sortedSets.length} set{sortedSets.length === 1 ? "" : "s"}
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-1.5 sm:justify-end">
+                                        {sortedSets.length > 0 ? (
+                                            sortedSets.map((set) => (
+                                                <span
+                                                    key={set.id}
+                                                    className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-[11px] font-semibold tabular-nums text-[var(--foreground)] shadow-[var(--shadow-xs)]"
+                                                >
+                                                    {formatSet(set.reps, set.weight)}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="text-xs text-[var(--muted-foreground)]">No logged sets</span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 )}
             </div>
 
