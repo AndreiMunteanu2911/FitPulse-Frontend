@@ -153,7 +153,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
 
   return (
     <ProtectedWrapper>
-      <div className="mx-auto w-full max-w-4xl">
+      <div className="page-stack mx-auto max-w-4xl">
         <PageHeader
           title={post.title}
           description="FitPulse training article"
@@ -162,7 +162,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ id: string 
 
         <article>
           {post.image_url && (
-            <div className="relative w-full h-[300px] sm:h-[450px] rounded-[var(--radius-xl)] overflow-hidden mb-10 shadow-2xl shadow-black/10">
+            <div className="card relative mb-8 h-[300px] w-full sm:h-[450px]">
               <Image
                 src={post.image_url}
                 alt={post.title}

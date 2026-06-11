@@ -109,7 +109,7 @@ export default function SocialPage() {
 
   return (
     <ProtectedWrapper>
-      <div className="w-full">
+      <div className="page-stack">
         <PageHeader
           title="Social"
           description="Connect and share with friends."
@@ -124,13 +124,13 @@ export default function SocialPage() {
           ) : null}
         />
 
-        <div className="flex gap-1 bg-[var(--surface)] rounded-[var(--radius-md)] p-1 mb-5">
+        <div className="segmented-control">
           <button
             onClick={() => setActiveTab("feed")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-[var(--radius-sm)] text-sm font-semibold transition-all ${
+            className={`segmented-control-item ${
               activeTab === "feed"
-                ? "bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-600)] text-white shadow-sm"
-                : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                ? "segmented-control-item-active"
+                : ""
             }`}
           >
             <Rss className="w-4 h-4" />
@@ -138,10 +138,10 @@ export default function SocialPage() {
           </button>
           <button
             onClick={() => setActiveTab("friends")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-[var(--radius-sm)] text-sm font-semibold transition-all relative ${
+            className={`segmented-control-item relative ${
               activeTab === "friends"
-                ? "bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-600)] text-white shadow-sm"
-                : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                ? "segmented-control-item-active"
+                : ""
             }`}
           >
             <Users className="w-4 h-4" />
@@ -167,21 +167,20 @@ export default function SocialPage() {
                 <LoadingSpinner />
               </div>
             ) : posts.length === 0 ? (
-              <div className="text-center py-16 bg-[var(--surface)] rounded-[var(--radius-lg)]">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-[var(--radius-md)] bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
-                  <Rss className="w-8 h-8 text-[var(--primary-600)] dark:text-[var(--primary-700)]" />
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <Rss className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">Your feed is quiet</h3>
-                <p className="text-sm text-[var(--muted-foreground)] mb-4">
+                <h3 className="empty-state-title">Your feed is quiet</h3>
+                <p className="empty-state-description">
                   Add friends and share your first post to get started.
                 </p>
-                <button
-                  onClick={() => setShowCreatePost(true)}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-600)] text-white hover:brightness-105 transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create your first post
-                </button>
+                <div className="mt-5">
+                  <Button onClick={() => setShowCreatePost(true)}>
+                    <Plus className="w-4 h-4" />
+                    Create your first post
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">

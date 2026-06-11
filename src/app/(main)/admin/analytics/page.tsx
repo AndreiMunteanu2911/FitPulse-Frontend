@@ -74,7 +74,7 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="page-stack">
       <AdminPageHeader
         title="Admin — Analytics"
         subtitle="Platform-wide usage metrics"

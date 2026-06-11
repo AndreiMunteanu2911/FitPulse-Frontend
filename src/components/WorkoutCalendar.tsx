@@ -40,7 +40,7 @@ export default function WorkoutCalendar({ workoutDates }: WorkoutCalendarProps) 
     for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
     return (
-        <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] p-5">
+        <div className="surface-muted p-4">
             {/* Calendar header */}
             <div className="flex items-center justify-between mb-4">
                 <button

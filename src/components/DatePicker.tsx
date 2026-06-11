@@ -120,7 +120,7 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center gap-2 px-4 py-3 rounded-[var(--radius-lg)] bg-[var(--surface)] border border-[var(--border)] text-[var(--foreground)] hover:border-[var(--primary-500)] focus:border-[var(--primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]/20 transition text-left"
+        className="input flex items-center gap-2 text-left hover:border-[var(--primary-500)]"
       >
         <CalendarIcon className="w-4 h-4 text-[var(--muted-foreground)] flex-shrink-0" />
         <span className={displayValue ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)]"}>
@@ -129,7 +129,7 @@ export default function DatePicker({ value, onChange, placeholder = "Select date
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-[var(--surface)] border border-[var(--border)] rounded-[var(--radius-lg)] shadow-lg overflow-hidden">
+        <div className="card absolute left-0 right-0 top-full z-50 mt-2">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
             <button

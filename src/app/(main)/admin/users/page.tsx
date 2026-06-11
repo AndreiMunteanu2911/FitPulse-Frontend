@@ -114,7 +114,7 @@ export default function AdminUsersPage() {
     : users;
 
   return (
-    <div className="w-full">
+    <div className="page-stack">
       <AdminPageHeader
         title="Admin — Users"
         subtitle="View and manage user accounts"

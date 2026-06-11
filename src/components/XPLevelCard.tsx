@@ -14,7 +14,7 @@ export default function XPLevelCard({ gamification }: XPLevelCardProps) {
   const xpNeeded = xpForNextLevel - xpForCurrentLevel;
 
   return (
-    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] p-5 sm:p-6">
+    <div className="card p-5 sm:p-6">
       <div className="flex items-center gap-4 mb-4">
         {/* Level badge */}
         <div className="flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] flex items-center justify-center">
@@ -23,7 +23,7 @@ export default function XPLevelCard({ gamification }: XPLevelCardProps) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-sm font-bold text-[var(--foreground)]" style={{ fontFamily: "var(--font-poppins)" }}>Level {level}</span>
+            <span className="text-sm font-bold text-[var(--foreground)]">Level {level}</span>
             <span className="text-xs text-[var(--muted-foreground)] tabular-nums">
               {xpInLevel.toLocaleString()} / {xpNeeded.toLocaleString()} XP
             </span>

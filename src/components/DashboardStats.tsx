@@ -75,15 +75,15 @@ export default function DashboardStats() {
   if (stats && stats.totalWorkouts === 0) {
     return (
       <div className="space-y-5">
-        <div className="text-center py-14 bg-[var(--surface)] rounded-md">
-          <div className="w-20 h-20 mx-auto mb-5 rounded-[var(--radius-lg)] bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
-            <Zap className="w-10 h-10 text-[var(--primary-600)] dark:text-[var(--primary-500)]" />
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <Zap className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-[var(--foreground)] mb-2" style={{ fontFamily: "var(--font-poppins)" }}>Start your journey</h3>
-          <p className="text-[var(--muted-foreground)] mb-6 max-w-xs mx-auto">Log your first workout to see your progress stats here.</p>
+          <h3 className="empty-state-title">Start your journey</h3>
+          <p className="empty-state-description">Log your first workout to see your progress stats here.</p>
           <a
             href="/workout"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--lime-green)] text-[#232323] rounded-full font-semibold shadow-[0_2px_10px_rgba(226,241,99,0.35)] hover:shadow-[0_4px_18px_rgba(226,241,99,0.45)] hover:brightness-105 transition"
+            className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--lime-green)] px-6 py-3 font-semibold text-[#232323] shadow-[0_10px_24px_rgba(197,212,74,0.22)] transition hover:-translate-y-0.5 hover:brightness-105"
           >
             <Plus className="w-4 h-4" />
             Start Workout
@@ -145,8 +145,8 @@ export default function DashboardStats() {
 
       {/* Weekly workout histogram */}
       {stats?.weeklyHistogram && stats.weeklyHistogram.length > 0 && (
-        <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] p-5">
-          <h3 className="text-sm font-bold text-[var(--foreground)] mb-4" style={{ fontFamily: "var(--font-poppins)" }}>Workouts per Week <span className="font-normal text-[var(--muted-foreground)]">(last 12 weeks)</span></h3>
+        <div className="card p-5">
+          <h3 className="mb-4 text-sm font-bold text-[var(--foreground)]">Workouts per Week <span className="font-normal text-[var(--muted-foreground)]">(last 12 weeks)</span></h3>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={stats?.weeklyHistogram ?? []} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
               <XAxis

@@ -16,7 +16,7 @@ export default function ProgressPhotoCard({ photo, onDelete }: ProgressPhotoCard
   };
 
   return (
-    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] overflow-hidden transition-all duration-200 group">
+    <div className="group overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)]">
       <div className="relative aspect-square">
         <img
           src={photo.photo_url}

@@ -80,7 +80,7 @@ export default function BlogPage() {
 
   return (
     <ProtectedWrapper>
-      <div className="w-full">
+      <div className="page-stack">
         <PageHeader
           title="Blog"
           description="Training tips, product news, and updates from FitPulse."
@@ -93,7 +93,7 @@ export default function BlogPage() {
                   placeholder="Search posts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-10 py-3 bg-white dark:bg-[var(--surface)] rounded-[var(--radius-lg)] text-[var(--foreground)] text-sm font-medium placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)] transition"
+                  className="input pl-11 pr-10"
                 />
               </div>
               {isAdmin && (

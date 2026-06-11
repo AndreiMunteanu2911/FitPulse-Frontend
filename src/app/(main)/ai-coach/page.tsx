@@ -66,7 +66,7 @@ export default function AICoachPage() {
   };
 
   return (
-    <div className="flex min-h-0 w-full flex-col">
+    <div className="page-stack min-h-0">
       {/* Page header — matches all other pages */}
       <PageHeader
         title="AI Coach"
@@ -87,7 +87,7 @@ export default function AICoachPage() {
         />
 
         {/* Chat panel */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+        <div className="card flex min-h-0 min-w-0 flex-1 flex-col">
           <CoachTextWindow
             messages={messages}
             isStreaming={isStreaming}

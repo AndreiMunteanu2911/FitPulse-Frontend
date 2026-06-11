@@ -228,7 +228,7 @@ export default function AdminExercisesPage() {
     : exercises;
 
   return (
-    <div className="w-full">
+    <div className="page-stack">
       <AdminPageHeader
         title="Admin — Exercises"
         subtitle="Manage the standard exercise catalogue"

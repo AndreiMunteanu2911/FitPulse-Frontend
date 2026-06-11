@@ -33,7 +33,7 @@ function ExerciseThumbnail({ src }: { src: string }) {
 
 export default function WorkoutHistoryExerciseCard({ workoutExercise }: WorkoutHistoryExerciseCardProps) {
     return (
-        <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] overflow-hidden">
+        <div className="card">
             {/* Header */}
             <div className="flex items-center gap-3 p-5 pb-3">
                 {workoutExercise.exercise.gif_url && (

@@ -138,7 +138,7 @@ export default function HistoryPage() {
 
     return (
         <ProtectedWrapper>
-            <div className="w-full">
+            <div className="page-stack">
                 <PageHeader
                     title="History"
                     description="Review completed workouts and personal records."
@@ -149,20 +149,18 @@ export default function HistoryPage() {
                         </Button>
                     }
                 />
-                <div className="card mb-5 p-5">
-                    <div className="grid grid-cols-3 gap-3">
-                        <div className="text-center">
-                            <p className="text-lg font-semibold text-[var(--foreground)]">{workouts.length}</p>
-                            <p className="text-[10px] uppercase tracking-wide text-[var(--muted-foreground)]">Workouts</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-lg font-semibold text-[var(--foreground)]">{totalVolume >= 1000 ? (totalVolume / 1000).toFixed(1) + "k" : totalVolume}</p>
-                            <p className="text-[10px] uppercase tracking-wide text-[var(--muted-foreground)]">Volume (kg)</p>
-                        </div>
-                        <div className="text-center">
-                            <p className="text-lg font-semibold text-[var(--foreground)]">{prCounts.size > 0 ? Array.from(prCounts.values()).reduce((a, b) => a + b, 0) : 0}</p>
-                            <p className="text-[10px] uppercase tracking-wide text-[var(--muted-foreground)]">PRs</p>
-                        </div>
+                <div className="metric-strip grid-cols-3">
+                    <div className="metric-item">
+                        <p className="metric-value">{workouts.length}</p>
+                        <p className="metric-label">Workouts</p>
+                    </div>
+                    <div className="metric-item">
+                        <p className="metric-value">{totalVolume >= 1000 ? (totalVolume / 1000).toFixed(1) + "k" : totalVolume}</p>
+                        <p className="metric-label">Volume (kg)</p>
+                    </div>
+                    <div className="metric-item">
+                        <p className="metric-value">{prCounts.size > 0 ? Array.from(prCounts.values()).reduce((a, b) => a + b, 0) : 0}</p>
+                        <p className="metric-label">PRs</p>
                     </div>
                 </div>
 
@@ -171,12 +169,12 @@ export default function HistoryPage() {
                 )}
 
                 {workouts.length === 0 ? (
-                    <div className="text-center py-14 bg-[var(--surface)] rounded-[var(--radius-lg)]">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-[var(--radius-md)] bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
-                            <Clock className="w-8 h-8 text-[var(--primary-600)] dark:text-[var(--primary-700)]" />
+                    <div className="empty-state">
+                        <div className="empty-state-icon">
+                            <Clock className="w-8 h-8" />
                         </div>
-                        <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">No workouts yet</h3>
-                        <p className="text-sm text-[var(--muted-foreground)]">Complete your first workout to see it here.</p>
+                        <h3 className="empty-state-title">No workouts yet</h3>
+                        <p className="empty-state-description">Complete your first workout to see it here.</p>
                     </div>
                 ) : (
                     <div className="space-y-3">

@@ -8,15 +8,15 @@ interface TimeRangeSelectorProps {
 
 export default function TimeRangeSelector({ value, onChange, options = [7, 14, 30, 90] }: TimeRangeSelectorProps) {
   return (
-    <div className="flex gap-2 mb-6">
+    <div className="segmented-control mb-6 w-full sm:w-fit">
       {options.map((d) => (
         <button
           key={d}
           onClick={() => onChange(d)}
-          className={`px-3 py-1.5 rounded-[var(--radius-sm)] text-sm font-semibold transition-colors ${
+          className={`segmented-control-item sm:min-w-14 ${
             value === d
-              ? "bg-[var(--primary-500)] text-white"
-              : "bg-[var(--surface)] text-[var(--muted-foreground)] hover:bg-[var(--surface-raised)]"
+              ? "segmented-control-item-active"
+              : ""
           }`}
         >
           {d}d

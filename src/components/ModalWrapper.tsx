@@ -67,7 +67,7 @@ export default function ModalWrapper({
 
     const borderRadiusClasses = position === "bottom"
         ? "rounded-t-[var(--radius-lg)]"
-        : "rounded-[var(--radius-lg)]";
+        : "rounded-[var(--radius-xl)]";
 
     const damping = position === "center" ? 25 : 30;
     const stiffness = position === "center" ? 220 : 250;

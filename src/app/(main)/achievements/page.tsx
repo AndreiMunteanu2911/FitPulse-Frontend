@@ -253,7 +253,7 @@ export default function AchievementsPage() {
 
   return (
     <ProtectedWrapper>
-      <div className="w-full space-y-5">
+      <div className="page-stack">
         <PageHeader
           title="Achievements"
           backHref="/dashboard"
@@ -279,7 +279,7 @@ export default function AchievementsPage() {
 
         {!loading && !error && (
           <>
-            <section className="rounded-[var(--radius-lg)] bg-[var(--surface)] p-5 sm:p-6">
+            <section className="card p-5 sm:p-6">
               <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted-foreground)]" style={{ fontFamily: "var(--font-poppins)" }}>

@@ -60,7 +60,7 @@ export default function WorkoutHistoryCard({ workout, prCount }: WorkoutHistoryC
     const extraCount = workout.workout_exercises.length - maxExercisesToShow;
 
     return (
-        <div className="group cursor-pointer overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]">
+        <div className="card-interactive group">
             <div className="flex min-h-[5rem]">
                 {/* Left date circle */}
                 <div className="flex-shrink-0 w-14 h-14 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] flex items-center justify-center text-white mt-4 ml-4 shadow-[0_12px_26px_rgba(116,87,245,0.22)]">
@@ -71,7 +71,7 @@ export default function WorkoutHistoryCard({ workout, prCount }: WorkoutHistoryC
                     {/* Title row */}
                     <div className="flex items-start justify-between gap-2 mb-1">
                         <div className="flex-1 min-w-0 pr-2">
-                            <h3 className="text-base sm:text-xl font-extrabold text-[var(--foreground)] leading-snug group-hover:text-[var(--primary-600)]" style={{ fontFamily: "var(--font-poppins)" }}>{workout.name}</h3>
+                            <h3 className="text-base font-bold leading-snug text-[var(--foreground)] group-hover:text-[var(--primary-600)] sm:text-lg">{workout.name}</h3>
                         </div>
                         <ChevronRight className="w-4 h-4 flex-shrink-0 mt-0.5 text-[var(--muted-foreground)]" />
                     </div>

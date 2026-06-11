@@ -15,13 +15,13 @@ const quickActions = [
 export default function DashboardPage() {
   return (
     <ProtectedWrapper>
-      <div className="w-full">
+      <div className="page-stack">
         <PageHeader
           title="Dashboard"
           description="Your training activity, progress, and shortcuts in one place."
         />
 
-        <div className="mb-6">
+        <section className="section">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {quickActions.map(({ name, description, href, Icon }) => (
               <Link
@@ -40,16 +40,16 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
-        </div>
+        </section>
 
         <DashboardShortcuts />
 
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold tracking-tight text-[var(--foreground)]">Training overview</h2>
+        <section className="section">
+          <div className="section-header">
+            <h2 className="section-heading">Training overview</h2>
           </div>
           <DashboardStats />
-        </div>
+        </section>
       </div>
     </ProtectedWrapper>
   );

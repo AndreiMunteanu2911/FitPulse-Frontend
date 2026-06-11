@@ -100,7 +100,7 @@ export default function AdminShopPage() {
 
   return (
     <ProtectedWrapper>
-      <div className="w-full">
+      <div className="page-stack">
         <AdminPageHeader
           title="Shop"
           subtitle="Add products and manage store inventory"

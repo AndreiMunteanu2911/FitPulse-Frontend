@@ -742,7 +742,7 @@ export default function WorkoutPage() {
 
     return (
         <ProtectedWrapper>
-            <div className="w-full">
+            <div className="page-stack">
 
                 {isLoading ? (
                     <div className="flex min-h-[18rem] items-center justify-center">
@@ -795,12 +795,12 @@ export default function WorkoutPage() {
                             emptyExerciseCount={discardInfo.emptyExerciseCount}
                         />
                         {noDraftFound && !workoutStarted && (
-                            <div className="text-center py-16 bg-[var(--surface)] rounded-[var(--radius-lg)] mb-6">
-                                <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] flex items-center justify-center">
+                            <div className="empty-state">
+                                <div className="flex size-16 items-center justify-center rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)]">
                                     <Zap className="w-10 h-10 text-white" />
                                 </div>
-                                <h3 className="text-xl font-bold text-[var(--foreground)] mb-1" style={{ fontFamily: "var(--font-poppins)" }}>Ready to train?</h3>
-                                <p className="text-sm text-[var(--muted-foreground)] mb-6">Start a new workout or use a template.</p>
+                                <h3 className="empty-state-title">Ready to train?</h3>
+                                <p className="empty-state-description">Start a new workout or use a template.</p>
                             </div>
                         )}
                         {workoutStarted && (
@@ -817,11 +817,12 @@ export default function WorkoutPage() {
                                 </div>
 
                                 {workoutExercises.length === 0 ? (
-                                    <div className="text-center py-14 bg-[var(--surface)] rounded-[var(--radius-lg)]">
-                                        <div className="w-14 h-14 mx-auto mb-3 rounded-[var(--radius-md)] bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
-                                            <Plus className="w-6 h-6 text-[var(--primary-600)] dark:text-[var(--primary-700)]" />
+                                    <div className="empty-state">
+                                        <div className="empty-state-icon">
+                                            <Plus className="w-6 h-6" />
                                         </div>
-                                        <p className="text-sm text-[var(--muted-foreground)]">No exercises yet. Tap &quot;Add Exercise&quot; to begin.</p>
+                                        <h3 className="empty-state-title">No exercises yet</h3>
+                                        <p className="empty-state-description">Tap &quot;Add Exercise&quot; to begin.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-4 sm:space-y-6">
@@ -899,8 +900,9 @@ export default function WorkoutPage() {
                                 <Button onClick={() => { setEditingTemplate(null); setIsTemplateModalOpen(true); }} variant="secondary" className="px-3 py-1.5 text-xs sm:text-sm">+ Create</Button>
                             </div>
                             {templates.length === 0 ? (
-                                <div className="text-center text-sm text-[var(--muted-foreground)] py-10 bg-[var(--surface)] rounded-[var(--radius-lg)]">
-                                    No templates yet. Create one to quickly start workouts!
+                                <div className="empty-state !min-h-48">
+                                    <h3 className="empty-state-title !mt-0">No templates yet</h3>
+                                    <p className="empty-state-description">Create one to quickly start workouts.</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

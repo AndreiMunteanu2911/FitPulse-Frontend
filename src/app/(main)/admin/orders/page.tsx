@@ -92,29 +92,30 @@ export default function AdminOrdersPage() {
 
   return (
     <ProtectedWrapper>
-      <AdminPageHeader
-        title="Orders"
-        subtitle="Review orders, update fulfillment status, and inspect shipping details"
-        action={
-          <button
-            type="button"
-            onClick={() => loadOrders()}
-            className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--surface-raised)]"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </button>
-        }
-      />
+      <div className="page-stack">
+        <AdminPageHeader
+          title="Orders"
+          subtitle="Review orders, update fulfillment status, and inspect shipping details"
+          action={
+            <button
+              type="button"
+              onClick={() => loadOrders()}
+              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--surface-raised)]"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
+          }
+        />
 
-      {error && (
-        <div className="mt-5 rounded-[var(--radius-md)] border border-[var(--color-destructive)]/20 bg-[var(--color-destructive-bg)] px-4 py-3 text-sm font-medium text-[var(--color-destructive)]">
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="rounded-[var(--radius-md)] border border-[var(--color-destructive)]/20 bg-[var(--color-destructive-bg)] px-4 py-3 text-sm font-medium text-[var(--color-destructive)]">
+            {error}
+          </div>
+        )}
 
-      {orders.length > 0 ? (
-        <div className="mt-6 grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
+        {orders.length > 0 ? (
+          <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-3">
           {orders.map((order) => {
             const orderStatus = (["pending", "completed", "shipped", "cancelled"] as const).includes(order.status as Status)
               ? (order.status as Status)
@@ -123,7 +124,7 @@ export default function AdminOrdersPage() {
             return (
               <article
                 key={order.id}
-                className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] transition-shadow hover:shadow-[var(--shadow)]"
+                className="card p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -205,14 +206,17 @@ export default function AdminOrdersPage() {
               </article>
             );
           })}
-        </div>
-      ) : (
-        <div className="mt-6 rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--surface)] px-6 py-16 text-center">
-          <Package className="mx-auto mb-4 h-14 w-14 text-[var(--muted-foreground)] opacity-20" />
-          <h3 className="text-xl font-black text-[var(--foreground)]">No orders yet</h3>
-          <p className="mt-2 text-sm text-[var(--muted-foreground)]">Orders will appear here after customers complete checkout.</p>
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <Package className="h-8 w-8" />
+            </div>
+            <h3 className="empty-state-title">No orders yet</h3>
+            <p className="empty-state-description">Orders will appear here after customers complete checkout.</p>
+          </div>
+        )}
+      </div>
     </ProtectedWrapper>
   );
 }

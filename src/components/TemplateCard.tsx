@@ -20,7 +20,7 @@ export default function TemplateCard({ template, onEdit, onDelete, onStart }: Te
   const exerciseCount = template.template_exercises?.length || 0;
 
   return (
-    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] transition-all duration-200 group overflow-hidden">
+    <div className="card group">
       <div className="p-5">
         {/* Icon + Header row */}
         <div className="flex items-start gap-3 mb-3">
@@ -28,7 +28,7 @@ export default function TemplateCard({ template, onEdit, onDelete, onStart }: Te
             <Dumbbell className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-[var(--foreground)] truncate" style={{ fontFamily: "var(--font-poppins)" }}>{template.name}</h3>
+            <h3 className="truncate text-base font-bold text-[var(--foreground)]">{template.name}</h3>
             {template.description && (
               <p className="text-sm text-[var(--muted-foreground)] mt-0.5 line-clamp-2">
                 {template.description}

@@ -43,7 +43,7 @@ export default function BlogCard({ post, isAdmin, onEdit, onDelete }: BlogCardPr
   };
 
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)] transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)] sm:flex-row">
+    <div className="card-interactive group flex h-full flex-col sm:flex-row">
       <div className="flex flex-1 flex-col p-5 sm:w-[60%] sm:p-6">
         <div className="mb-3 flex items-center gap-3 text-[11px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">
           <div className="flex items-center gap-1.5 rounded-full bg-[var(--surface-raised)] px-3 py-1.5">
@@ -52,7 +52,7 @@ export default function BlogCard({ post, isAdmin, onEdit, onDelete }: BlogCardPr
           </div>
         </div>
         <Link href={`/blog/${post.id}`}>
-          <h3 className="mb-2 line-clamp-2 text-xl font-extrabold leading-tight text-[var(--foreground)] transition-colors group-hover:text-[var(--primary-500)]" style={{ fontFamily: "var(--font-poppins)" }}>
+          <h3 className="mb-2 line-clamp-2 text-xl font-bold leading-tight text-[var(--foreground)] transition-colors group-hover:text-[var(--primary-500)]">
             {post.title}
           </h3>
         </Link>

@@ -82,7 +82,7 @@ export default function ExerciseDetailsPage() {
 
     return (
         <ProtectedWrapper>
-            <div className="w-full">
+            <div className="page-stack">
                 <PageHeader
                     title={capitalize(exercise.name)}
                     description="Exercise details, technique guidance, and performance history."

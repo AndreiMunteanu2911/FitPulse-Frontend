@@ -103,14 +103,14 @@ export default function PostCard({ post, onLike, onDelete, currentUserId }: Post
   const hasMore = visibleCount < totalComments;
 
   return (
-    <div className="overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+    <div className="card">
       <div className="p-5">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--primary-500)] to-[var(--primary-700)] flex items-center justify-center text-white text-sm font-extrabold flex-shrink-0 shadow-[0_10px_24px_rgba(116,87,245,0.22)]">
             {initials || <User className="w-4 h-4" />}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-base font-extrabold text-[var(--foreground)] truncate" style={{ fontFamily: "var(--font-poppins)" }}>{displayName}</p>
+            <p className="truncate text-base font-bold text-[var(--foreground)]">{displayName}</p>
             <p className="text-sm font-semibold text-[var(--muted-foreground)]">{timeAgo(post.created_at!)}</p>
           </div>
           {isPostOwner && (

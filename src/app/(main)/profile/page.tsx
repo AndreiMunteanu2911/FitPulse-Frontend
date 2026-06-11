@@ -326,7 +326,7 @@ export default function ProfilePage() {
 
     return (
         <ProtectedWrapper>
-            <div className="w-full">
+            <div className="page-stack">
                 <PageHeader
                     title="Profile"
                     description="Manage your personal details and review your progress."
@@ -373,7 +373,7 @@ export default function ProfilePage() {
                 {/* ── Settings Sections ── */}
                 <div className="space-y-5">
                     {/* Dark Mode */}
-                    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] p-5">
+                    <div className="card p-5">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
@@ -389,7 +389,7 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Weight History */}
-                    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] overflow-hidden">
+                    <div className="card">
                         <div className="flex items-center justify-between px-5 py-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
@@ -410,7 +410,7 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Workout Calendar */}
-                    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] overflow-hidden">
+                    <div className="card">
                         <div className="px-5 py-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
@@ -428,7 +428,7 @@ export default function ProfilePage() {
                     </div>
 
                     {/* Progress Photos */}
-                    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] overflow-hidden">
+                    <div className="card">
                         <div className="flex items-center justify-between px-5 py-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
@@ -462,7 +462,7 @@ export default function ProfilePage() {
                     {/* Sign Out */}
                     <button
                         onClick={signOut}
-                        className="w-full flex items-center gap-3 px-5 py-4 bg-[var(--surface)] rounded-[var(--radius-lg)] hover:bg-[var(--surface-raised)] transition-colors group"
+                        className="card-interactive group flex w-full items-center gap-3 px-5 py-4"
                     >
                         <div className="w-10 h-10 rounded-full bg-[var(--color-destructive-bg)] flex items-center justify-center">
                             <LogOut className="w-4 h-4 text-[var(--color-destructive)]" />

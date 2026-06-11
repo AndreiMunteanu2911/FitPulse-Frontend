@@ -9,13 +9,13 @@ interface EmptyStateProps {
 
 export default function EmptyState({ icon, title, description, children }: EmptyStateProps) {
   return (
-    <div className="text-center py-12 bg-[var(--surface)] rounded-[var(--radius-lg)]">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--primary-50)] dark:bg-[var(--primary-100)] flex items-center justify-center">
+    <div className="empty-state">
+      <div className="empty-state-icon">
         {icon}
       </div>
-      <h3 className="text-lg font-bold text-[var(--foreground)] mb-2" style={{ fontFamily: "var(--font-poppins)" }}>{title}</h3>
-      <p className="text-sm text-[var(--muted-foreground)]">{description}</p>
-      {children}
+      <h3 className="empty-state-title">{title}</h3>
+      <p className="empty-state-description">{description}</p>
+      {children ? <div className="mt-5">{children}</div> : null}
     </div>
   );
 }

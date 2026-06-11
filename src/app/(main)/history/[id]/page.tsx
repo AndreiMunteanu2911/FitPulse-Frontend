@@ -363,7 +363,7 @@ export default function WorkoutDetailPage() {
     if (error || !workout) {
         return (
             <ProtectedWrapper>
-                <div className="w-full">
+                <div className="page-stack">
                     <PageHeader
                         title="Workout details"
                         description="Review this workout session."
@@ -393,7 +393,7 @@ export default function WorkoutDetailPage() {
 
     return (
         <ProtectedWrapper>
-            <div className="w-full">
+            <div className="page-stack">
                 <PageHeader
                     title={workout.name}
                     description={formatDate(workout.workout_date)}

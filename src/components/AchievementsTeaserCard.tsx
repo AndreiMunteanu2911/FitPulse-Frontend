@@ -52,7 +52,7 @@ export default function AchievementsTeaserCard({ achievements }: AchievementsTea
   const hasClaimable = claimable.length > 0;
 
   return (
-    <div className="bg-[var(--surface)] rounded-[var(--radius-lg)] p-5 sm:p-6">
+    <div className="card p-5 sm:p-6">
       <div className="flex items-start gap-4">
         <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--primary-50)] dark:bg-[var(--primary-100)] text-[var(--primary-600)]">
           <Trophy className="h-6 w-6" />
@@ -66,7 +66,7 @@ export default function AchievementsTeaserCard({ achievements }: AchievementsTea
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-bold text-[var(--foreground)]" style={{ fontFamily: "var(--font-poppins)" }}>
+              <p className="text-sm font-bold text-[var(--foreground)]">
                 Achievements
               </p>
               <p className="mt-1 text-xs text-[var(--muted-foreground)]">

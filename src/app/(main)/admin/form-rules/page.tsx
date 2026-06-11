@@ -302,7 +302,7 @@ export default function AdminFormRulesPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="page-stack">
       <AdminPageHeader
         title="Pattern Form Rules"
         subtitle="Review exercise pattern mapping and overrides."

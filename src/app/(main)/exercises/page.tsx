@@ -75,20 +75,20 @@ export default function ExercisesPage() {
 
     return (
         <ProtectedWrapper>
-            <div className="w-full">
+            <div className="page-stack">
                 <PageHeader
                     title="Exercises"
                     description="Browse the exercise library and find movements for your next workout."
                 />
-                <div className="mb-5">
-                    <div className="relative rounded-[var(--radius-xl)] bg-[var(--surface)] p-2 shadow-[var(--shadow-sm)]">
+                <div className="toolbar">
+                    <div className="relative w-full">
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted-foreground)]" />
                         <input
                             type="text"
                             placeholder="Search exercises..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full rounded-[var(--radius-lg)] bg-[var(--surface-raised)] py-3.5 pl-12 pr-12 text-base font-semibold text-[var(--foreground)] placeholder-[var(--muted-foreground)] transition focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]"
+                            className="input border-0 bg-[var(--surface-raised)] pl-12 pr-12 font-medium"
                         />
                         {searchQuery && (
                             <button

@@ -65,7 +65,7 @@ export default function WorkoutExerciseCard({
         onRestTimerDismiss;
 
     return (
-        <div className="overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+        <div className="card">
             <div className="p-5 sm:p-6">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-5">
@@ -75,7 +75,7 @@ export default function WorkoutExerciseCard({
                         </div>
                     )}
                     <div className="flex-1 min-w-0">
-                        <h3 className="text-lg sm:text-xl font-extrabold text-[var(--foreground)] truncate" style={{ fontFamily: "var(--font-poppins)" }}>
+                        <h3 className="truncate text-lg font-bold text-[var(--foreground)]">
                             {capitalizeFirstLetter(workoutExercise.exercise.name)}
                         </h3>
                         {workoutExercise.exercise.target_muscles?.[0] && (

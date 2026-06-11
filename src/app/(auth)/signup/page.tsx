@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { ChevronLeft } from "lucide-react";
-import Image from "next/image";
+import { AppLogo } from "@/components/AppLogo";
 import Button from "@/components/Button";
 
 export default function SignUpPage() {
@@ -54,13 +54,8 @@ export default function SignUpPage() {
     return (
         <div className="w-full min-h-screen flex flex-col text-white">
             {/* Logo */}
-            <div className="flex items-center gap-2.5 pt-6 pb-2">
-                <div className="w-9 h-9 rounded-[12px] overflow-hidden bg-white flex items-center justify-center">
-                    <Image src="/assets/logo.png" alt="FitPulse" width={22} height={22} className="object-contain" />
-                </div>
-                <span className="text-lg tracking-tight" style={{ fontFamily: "var(--font-poppins)" }}>
-                    <span className="font-extrabold text-white">Fit</span><span className="font-bold text-[var(--lime-green)]">Pulse</span>
-                </span>
+            <div className="pb-2 pt-6">
+                <AppLogo href="/" inverted />
             </div>
 
             <div className="flex-1 flex flex-col justify-center max-w-sm w-full py-8">
@@ -69,57 +64,57 @@ export default function SignUpPage() {
                         <ChevronLeft className="w-4 h-4" />
                         Back
                     </Link>
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-1" style={{ fontFamily: "var(--font-poppins)" }}>Create account</h1>
-                    <p className="text-white/60 text-sm">Start your fitness journey today</p>
+                    <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-4xl">Create account</h1>
+                    <p className="mt-2 text-sm text-white/55">Start your fitness journey today.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-widest text-white/60 mb-1.5">Display Name</label>
+                        <label className="auth-label">Display Name</label>
                         <input
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             placeholder="John Doe"
-                            className="w-full px-4 py-3 rounded-full bg-white/10 border border-white/15 text-white placeholder-white/40 focus:bg-white/15 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+                            className="auth-input"
                         />
                         {errors.fullName && <p className="text-white text-xs mt-1 font-semibold">{errors.fullName}</p>}
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-widest text-white/60 mb-1.5">Email</label>
+                        <label className="auth-label">Email</label>
                         <input
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             type="email"
                             placeholder="you@email.com"
-                            className="w-full px-4 py-3 rounded-full bg-white/10 border border-white/15 text-white placeholder-white/40 focus:bg-white/15 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+                            className="auth-input"
                         />
                         {errors.email && <p className="text-white text-xs mt-1 font-semibold">{errors.email}</p>}
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-widest text-white/60 mb-1.5">Password</label>
+                        <label className="auth-label">Password</label>
                         <input
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             type="password"
                             placeholder="••••••••"
-                            className="w-full px-4 py-3 rounded-full bg-white/10 border border-white/15 text-white placeholder-white/40 focus:bg-white/15 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+                            className="auth-input"
                         />
                         {errors.password && <p className="text-white text-xs mt-1 font-semibold">{errors.password}</p>}
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold uppercase tracking-widest text-white/60 mb-1.5">Confirm Password</label>
+                        <label className="auth-label">Confirm Password</label>
                         <input
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             type="password"
                             placeholder="••••••••"
-                            className="w-full px-4 py-3 rounded-full bg-white/10 border border-white/15 text-white placeholder-white/40 focus:bg-white/15 focus:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 transition"
+                            className="auth-input"
                         />
                         {errors.confirmPassword && <p className="text-white text-xs mt-1 font-semibold">{errors.confirmPassword}</p>}
                     </div>
 
                     {message && (
-                        <div className="p-3 rounded-full bg-white/10 border border-white/15 text-sm text-white/90">{message}</div>
+                        <div className="rounded-[var(--radius-md)] border border-white/15 bg-white/10 p-3 text-sm text-white/90">{message}</div>
                     )}
 
                     <Button

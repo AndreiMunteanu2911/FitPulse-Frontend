@@ -21,7 +21,7 @@ export default function PersonalRecordCard({ record }: PersonalRecordCardProps) 
     : null;
 
   return (
-    <div className="overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+    <div className="card">
       <div className="p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1 min-w-0 flex items-center gap-3">
@@ -29,7 +29,7 @@ export default function PersonalRecordCard({ record }: PersonalRecordCardProps) 
               <Trophy className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg sm:text-xl font-extrabold text-[var(--foreground)] capitalize truncate" style={{ fontFamily: "var(--font-poppins)" }}>{exerciseName}</h3>
+              <h3 className="truncate text-lg font-bold capitalize text-[var(--foreground)]">{exerciseName}</h3>
               <p className="mt-1 inline-flex rounded-full bg-[var(--surface-raised)] px-2.5 py-1 text-xs font-bold capitalize text-[var(--muted-foreground)]">{targetMuscles}</p>
             </div>
           </div>

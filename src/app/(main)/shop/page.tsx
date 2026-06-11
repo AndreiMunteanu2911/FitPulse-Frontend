@@ -89,7 +89,7 @@ export default function ShopPage() {
 
   return (
       <ProtectedWrapper>
-        <div className="w-full">
+        <div className="page-stack">
           <PageHeader
             title="Shop"
             description="Everything you need for your workout."

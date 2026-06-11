@@ -13,7 +13,7 @@ export function PageHeader({ title, description, actions, backHref }: PageHeader
   const hasMobileControls = Boolean(actions || backHref);
 
   return (
-    <header className={`page-header mb-6 ${hasMobileControls ? "" : "hidden md:block"}`}>
+    <header className={`page-header ${hasMobileControls ? "" : "hidden md:block"}`}>
       <div className="flex items-start gap-3">
         {backHref ? (
           <Link

@@ -32,8 +32,8 @@ export default function ExerciseCard({ exercise, showDetailsButton = true, onCli
     return (
         <div
             onClick={onClick}
-            className={`group flex items-center gap-4 overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-xs)] transition-all duration-200 ${
-                onClick ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-[var(--shadow-sm)] active:scale-[0.99]" : ""
+            className={`${onClick ? "card-interactive" : "card"} group flex items-center gap-4 p-4 ${
+                onClick ? "active:scale-[0.99]" : ""
             }`}
         >
             {exercise.is_custom ? (
@@ -48,7 +48,7 @@ export default function ExerciseCard({ exercise, showDetailsButton = true, onCli
 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-extrabold text-[var(--foreground)] truncate group-hover:text-[var(--primary-600)]" style={{ fontFamily: "var(--font-poppins)" }}>
+                    <h3 className="truncate text-base font-bold text-[var(--foreground)] group-hover:text-[var(--primary-600)]">
                         {exercise.name.charAt(0).toUpperCase() + exercise.name.slice(1)}
                     </h3>
                 </div>

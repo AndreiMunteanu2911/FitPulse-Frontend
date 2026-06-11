@@ -148,7 +148,7 @@ export default function AdminTemplatesPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="page-stack">
       <AdminPageHeader
         title="Admin — Templates"
         subtitle="Manage official workout templates"

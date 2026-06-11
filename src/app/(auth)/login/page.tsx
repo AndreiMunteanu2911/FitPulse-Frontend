@@ -65,7 +65,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.1em] text-white/60">
+            <label htmlFor="email" className="auth-label">
               Email
             </label>
             <input
@@ -76,13 +76,13 @@ export default function LoginPage() {
               autoComplete="email"
               placeholder="you@example.com"
               required
-              className="w-full rounded-[var(--radius-md)] border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/15"
+              className="auth-input"
             />
             {errors.email ? <p className="mt-1.5 text-xs font-medium text-red-200">{errors.email}</p> : null}
           </div>
 
           <div>
-            <label htmlFor="password" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.1em] text-white/60">
+            <label htmlFor="password" className="auth-label">
               Password
             </label>
             <input
@@ -93,7 +93,7 @@ export default function LoginPage() {
               autoComplete="current-password"
               placeholder="Enter your password"
               required
-              className="w-full rounded-[var(--radius-md)] border border-white/15 bg-white/10 px-4 py-3 text-white placeholder:text-white/35 focus:border-white/35 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/15"
+              className="auth-input"
             />
             {errors.password ? <p className="mt-1.5 text-xs font-medium text-red-200">{errors.password}</p> : null}
           </div>

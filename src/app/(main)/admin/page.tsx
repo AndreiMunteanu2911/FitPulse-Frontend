@@ -65,7 +65,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="w-full">
+    <div className="page-stack">
       <AdminPageHeader
         title="Admin"
         subtitle="Manage the platform"
