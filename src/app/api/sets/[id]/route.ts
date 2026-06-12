@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/helper/supabaseServer";
 import { setMutationSchema } from "@/lib/validations";
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+
 // Verify that a set belongs to the authenticated user's workout.
 // Uses three sequential queries (no nested joins) to avoid PostgREST join limitations.
-async function verifySetOwnership(supabase: any, userId: string, setId: string): Promise<boolean> {
+async function verifySetOwnership(
+  supabase: SupabaseServerClient,
+  userId: string,
+  setId: string
+): Promise<boolean> {
   // 1. Find the set
   const { data: setRow } = await supabase
     .from("sets")
