@@ -1,19 +1,21 @@
-name: Android APK
+name: Android APK Release
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
-    tags:
-      - 'v*'
 
 permissions:
   contents: write
 
+concurrency:
+  group: android-apk-release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  build-apk:
-    name: Build Capacitor APK
+  build-and-release:
+    name: Build APK and publish release
     runs-on: ubuntu-latest
 
     env:
@@ -29,12 +31,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.24.0
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -43,55 +50,42 @@ jobs:
           java-version: 21
           cache: gradle
 
-      - name: Verify Java runtime
-        run: |
-          echo "JAVA_HOME=$JAVA_HOME"
-          java -version
-          javac -version
-
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Sync Capacitor Android project
-        run: npx cap sync android
+        run: pnpm exec cap sync android
 
       - name: Build debug APK
         run: |
           echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
           chmod +x android/gradlew
           cd android
-          ./gradlew --version
           ./gradlew assembleDebug
 
-      - name: Rename APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/FitPulse.apk
+      - name: Prepare APK
+        id: apk
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          tag="android-apk-${GITHUB_RUN_NUMBER}-${GITHUB_RUN_ATTEMPT}"
+          apk_name="FitPulse-${short_sha}.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "$apk_name"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$apk_name" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: FitPulse.apk
-          path: android/app/build/outputs/apk/debug/FitPulse.apk
+          name: ${{ steps.apk.outputs.apk_name }}
+          path: ${{ steps.apk.outputs.apk_name }}
 
-      - name: Move latest Android release tag
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git tag -f android-latest "$GITHUB_SHA"
-          git push -f origin android-latest
-
-      - name: Publish APK to latest GitHub Release
-        if: github.ref == 'refs/heads/main'
+      - name: Publish APK to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: android-latest
-          name: Latest Android APK
-          body: Latest debug APK built from main.
+          tag_name: ${{ steps.apk.outputs.tag }}
+          name: FitPulse Android APK ${{ github.run_number }}
+          body: |
+            Automated debug APK built from `${{ github.sha }}` on `main`.
+          target_commitish: ${{ github.sha }}
           make_latest: true
-          overwrite_files: true
-          files: android/app/build/outputs/apk/debug/FitPulse.apk
-
-      - name: Publish APK to versioned GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          overwrite_files: true
-          files: android/app/build/outputs/apk/debug/FitPulse.apk
+          files: ${{ steps.apk.outputs.apk_name }}
