@@ -1,8 +1,6 @@
 # Testing
 
-This project uses a headless Vitest suite. It does not use Playwright, Cypress, or a real browser window.
-
-Tests live in the top-level `tests/` folder and import the real app code from `src/` through the `@/` alias.
+This repository uses Vitest with `jsdom` for frontend tests.
 
 ## Commands
 
@@ -14,19 +12,13 @@ pnpm test:coverage
 
 ## Test Layers
 
-- `tests/lib/**/*.test.ts`: pure business logic and validation tests.
-- `tests/stores/**/*.test.ts`: Zustand state transition tests.
-- `tests/hooks/**/*.test.tsx`: hook tests with MSW request handlers.
-- `tests/components/**/*.test.tsx`: React component behavior in `jsdom`.
-- `tests/app/api/**/*.test.ts`: API route tests with mocked Supabase, Stripe, and app config modules.
+- `tests/components/**/*.test.tsx`: React component behavior.
+- `tests/hooks/**/*.test.tsx`: client hooks and request behavior.
+- `tests/services/**/*.test.ts`: shared API client behavior.
+- `tests/stores/**/*.test.ts`: Zustand state transitions.
+- `tests/lib/**/*.test.ts`: browser-side validation, navigation, and local camera/form analysis.
+- `tests/config/**/*.test.ts`: frontend and Capacitor environment behavior.
 
-## Mocking Policy
+MSW and mocked `fetch` responses isolate the UI from the deployed Nest API. Backend routes, Supabase queries, Stripe/OpenRouter integration code, migrations, XP, achievements, and other authoritative business logic are tested in the backend repository.
 
-External services are mocked at module boundaries:
-
-- Supabase is mocked to assert auth checks, table names, filters, inserts, updates, and error handling.
-- Stripe is mocked to assert checkout session parameters and failure handling.
-- HTTP requests from hooks and client services can be mocked with MSW via `tests/mocks/server.ts`.
-- Browser-only APIs are provided by `jsdom` and `tests/setup.ts`.
-
-These tests verify this app's behavior around external systems. They are not intended to prove Supabase, Stripe, or a browser implementation works.
+The suite does not use a real browser or Android WebView. Camera permissions, MediaPipe runtime behavior, Capacitor plugins, auth-cookie forwarding through the Vercel rewrite, and complete checkout flows require manual or dedicated end-to-end testing.

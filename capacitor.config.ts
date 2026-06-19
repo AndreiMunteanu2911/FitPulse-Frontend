@@ -13,13 +13,8 @@ const devServerUrl = getAndroidDevServerUrl();
 const allowNavigation = isProductionAppEnv()
   ? [
       new URL(productionUrl).host,
-      "*.vercel.app",
       "checkout.stripe.com",
       "*.stripe.com",
-      "qcywxceqsopfxpoukaxn.supabase.co",
-      "static.exercisedb.dev",
-      "cdn.jsdelivr.net",
-      "storage.googleapis.com",
     ]
   : [getAndroidDevHost()];
 

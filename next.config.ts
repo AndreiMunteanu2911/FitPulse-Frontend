@@ -2,9 +2,24 @@ import type { NextConfig } from "next";
 import { getAndroidDevHost, isProductionAppEnv } from "./src/config/app-env";
 
 const allowedDevOrigins = isProductionAppEnv() ? [] : [getAndroidDevHost(), "10.0.2.2"];
+const configuredApiUrl = process.env.API_URL;
+
+if (process.env.NODE_ENV === "production" && !configuredApiUrl) {
+  throw new Error("API_URL must point to the deployed FitPulse backend for production builds.");
+}
 
 const nextConfig: NextConfig = {
   allowedDevOrigins,
+  async rewrites() {
+    const apiUrl = (configuredApiUrl || "http://localhost:3001").replace(/\/+$/, "");
+
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiUrl}/api/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

@@ -19,13 +19,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      CAP_APP_ENV: ${{ secrets.CAP_APP_ENV || vars.CAP_APP_ENV || 'production' }}
-      NEXT_PUBLIC_APP_ENV: ${{ secrets.NEXT_PUBLIC_APP_ENV || vars.NEXT_PUBLIC_APP_ENV || 'production' }}
-      NEXT_PUBLIC_PRODUCTION_APP_URL: ${{ secrets.NEXT_PUBLIC_PRODUCTION_APP_URL || vars.NEXT_PUBLIC_PRODUCTION_APP_URL || 'https://fitpulseam.vercel.app' }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL }}
-      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || vars.SUPABASE_ANON_KEY }}
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || vars.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      CAP_APP_ENV: production
+      NEXT_PUBLIC_PRODUCTION_APP_URL: ${{ vars.NEXT_PUBLIC_PRODUCTION_APP_URL || 'https://fitpulseam.vercel.app' }}
 
     steps:
       - name: Check out repository
@@ -85,7 +80,7 @@ jobs:
           tag_name: ${{ steps.apk.outputs.tag }}
           name: FitPulse Android APK ${{ github.run_number }}
           body: |
-            Automated debug APK built from `${{ github.sha }}` on `main`.
+            Latest FitPulse apk.
           target_commitish: ${{ github.sha }}
           make_latest: true
           files: ${{ steps.apk.outputs.apk_name }}

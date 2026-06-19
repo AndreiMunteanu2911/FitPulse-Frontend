@@ -21,7 +21,7 @@ import CreateTemplateModal from "@/components/CreateTemplateModal";
 import DeleteTemplateModal from "@/components/DeleteTemplateModal";
 import { PageHeader } from "@/components/PageHeader";
 import type { Exercise, WorkoutExercise, Set as WorkoutSet, WorkoutTemplate, RestTimerState } from "@/types";
-import { detectExerciseType, REST_DURATIONS } from "@/lib/gamification";
+import { detectExerciseType, REST_DURATIONS } from "@/lib/rest-timer";
 import { saveWorkoutState } from "@/lib/workout-persistence";
 import { Layers3, Pencil, Plus, Sparkles } from "lucide-react";
 function formatElapsed(seconds: number): string {

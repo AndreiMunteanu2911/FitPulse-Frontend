@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { apiFetch } from "@/services/api/apiFetch";
 import type { User } from "@/types";
 
 type AuthSessionContextValue = {
@@ -26,18 +27,17 @@ export function AuthSessionProvider({
     setUser(initialUser);
   }, [initialUser]);
 
-  const refreshSession = async () => {
-    const res = await fetch("/api/auth/session");
-    if (!res.ok) {
+  const refreshSession = useCallback(async () => {
+    try {
+      const data = await apiFetch<{ user?: User | null }>("/api/auth/session", { allowAuthRedirect: false });
+      const nextUser = data.user ?? null;
+      setUser(nextUser);
+      return nextUser;
+    } catch {
       setUser(null);
       return null;
     }
-
-    const data = await res.json();
-    const nextUser = data.user ?? null;
-    setUser(nextUser);
-    return nextUser;
-  };
+  }, []);
 
   const value: AuthSessionContextValue = {
     user,
