@@ -49,7 +49,28 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Configure production Capacitor shell
-        run: node scripts/configure-capacitor-shell.mjs
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFile, writeFile } from "node:fs/promises";
+
+          const marker = "__FITPULSE_APP_URL__";
+          const appUrl = process.env.NEXT_PUBLIC_PRODUCTION_APP_URL?.replace(/\/+$/, "");
+          if (!appUrl || !appUrl.startsWith("https://")) {
+            throw new Error("NEXT_PUBLIC_PRODUCTION_APP_URL must be an HTTPS URL.");
+          }
+
+          const shellPath = "capacitor-shell/index.html";
+          const shell = await readFile(shellPath, "utf8");
+          const configuredShell = shell.includes(marker)
+            ? shell.replaceAll(marker, appUrl)
+            : shell.replace(/var APP_HOST = "https:\/\/[^\"]+";/, `var APP_HOST = "${appUrl}";`);
+
+          if (configuredShell === shell) {
+            throw new Error("Capacitor shell APP_HOST setting was not found.");
+          }
+
+          await writeFile(shellPath, configuredShell, "utf8");
+          EOF
 
       - name: Sync Capacitor Android project
         run: pnpm exec cap sync android
