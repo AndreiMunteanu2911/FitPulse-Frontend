@@ -1,6 +1,6 @@
 type AppEnv = "development" | "production";
 
-const DEFAULT_PRODUCTION_APP_URL = "https://fitpulseam.vercel.app";
+const DEFAULT_PRODUCTION_APP_URL = "https://fitpulse-am.vercel.app";
 const DEFAULT_ANDROID_DEV_SERVER_URL = "http://10.0.2.2:3000";
 
 function normalizeEnv(value?: string | null): AppEnv {

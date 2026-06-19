@@ -2,7 +2,7 @@
 
 Next.js web interface and Capacitor Android shell for FitPulse.
 
-[Open the live app](https://fitpulseam.vercel.app) | [Android releases](https://github.com/AndreiMunteanu2911/FitPulse-Workout-Tracker/releases)
+[Open the live app](https://fitpulse-am.vercel.app) | [Android releases](https://github.com/AndreiMunteanu2911/FitPulse-Workout-Tracker/releases)
 
 This repository is intentionally frontend-only. Authentication operations, Supabase queries, migrations, authorization, business calculations, Stripe secrets, webhooks, AI calls, and admin enforcement live in the separate FitPulse Backend repository.
 
@@ -70,7 +70,7 @@ pnpm dev
 ```env
 CAP_APP_ENV=development
 NEXT_PUBLIC_APP_ENV=development
-NEXT_PUBLIC_PRODUCTION_APP_URL=https://fitpulseam.vercel.app
+NEXT_PUBLIC_PRODUCTION_APP_URL=https://fitpulse-am.vercel.app
 CAP_ANDROID_DEV_SERVER_URL=http://10.0.2.2:3000
 API_URL=http://localhost:3001
 ```
@@ -84,7 +84,7 @@ Do not add `SUPABASE_SERVICE_ROLE_KEY`, Stripe secrets, OpenRouter keys, or othe
 | Variable | Where | Purpose |
 | --- | --- | --- |
 | `API_URL` | Local and frontend Vercel | Server-side rewrite target for the Nest backend. Required in production. |
-| `NEXT_PUBLIC_PRODUCTION_APP_URL` | Local, Vercel, GitHub variable | Canonical hosted frontend URL used by Capacitor/mobile navigation. Public. |
+| `NEXT_PUBLIC_PRODUCTION_APP_URL` | Local, Vercel, GitHub secret | Canonical hosted frontend URL used by Capacitor/mobile navigation. Public value. |
 | `CAP_APP_ENV` | Local or APK workflow | `development` uses the emulator server; `production` packages the hosted shell. |
 | `NEXT_PUBLIC_APP_ENV` | Local only | Optional matching web/mobile environment override. |
 | `CAP_ANDROID_DEV_SERVER_URL` | Local only | Android emulator URL for the local Next server. |
@@ -127,17 +127,18 @@ For a physical device, replace `CAP_ANDROID_DEV_SERVER_URL` with your computer's
 
 ### Existing APK Workflow
 
-`.github/workflows/android-apk.yml` builds a debug APK and publishes it to GitHub Releases. Configure one frontend-repository GitHub Actions variable:
+`.github/workflows/android-apk.yml` builds a debug APK and publishes it to GitHub Releases. Configure one frontend-repository GitHub Actions secret:
 
 ```text
-NEXT_PUBLIC_PRODUCTION_APP_URL=https://YOUR_FRONTEND_DOMAIN
+NEXT_PUBLIC_PRODUCTION_APP_URL=https://fitpulse-am.vercel.app
 ```
 
-The current APK workflow requires no GitHub secrets:
+The current APK workflow requires only that repository secret:
 
 - `GITHUB_TOKEN` is supplied automatically and `contents: write` permits release creation.
 - Supabase values are not used by Capacitor and were removed from the workflow.
 - `CAP_APP_ENV` is fixed to `production` in the workflow.
+- The workflow validates and injects the hosted URL into the Capacitor shell before compiling.
 
 The produced APK uses Android's debug signing key. For Play Store or trusted release distribution, change the workflow to build a signed release/AAB and then add secrets such as `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`. Do not create these until the YAML actually consumes them.
 

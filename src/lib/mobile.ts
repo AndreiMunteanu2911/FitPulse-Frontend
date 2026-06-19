@@ -11,7 +11,7 @@ import { Preferences } from "@capacitor/preferences";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
 
-export const MOBILE_APP_HOST = process.env.NEXT_PUBLIC_PRODUCTION_APP_URL || "https://fitpulseam.vercel.app";
+export const MOBILE_APP_HOST = process.env.NEXT_PUBLIC_PRODUCTION_APP_URL || "https://fitpulse-am.vercel.app";
 export const MOBILE_APP_SCHEME = "com.fitpulse.app";
 
 type CapacitorListener = { remove: () => Promise<void> };

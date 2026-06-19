@@ -20,7 +20,7 @@ jobs:
 
     env:
       CAP_APP_ENV: production
-      NEXT_PUBLIC_PRODUCTION_APP_URL: ${{ vars.NEXT_PUBLIC_PRODUCTION_APP_URL || 'https://fitpulseam.vercel.app' }}
+      NEXT_PUBLIC_PRODUCTION_APP_URL: ${{ secrets.NEXT_PUBLIC_PRODUCTION_APP_URL }}
 
     steps:
       - name: Check out repository
@@ -47,6 +47,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Configure production Capacitor shell
+        run: node scripts/configure-capacitor-shell.mjs
 
       - name: Sync Capacitor Android project
         run: pnpm exec cap sync android
