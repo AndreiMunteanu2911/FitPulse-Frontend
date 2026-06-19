@@ -4,8 +4,15 @@ import { getAndroidDevHost, isProductionAppEnv } from "./src/config/app-env";
 const allowedDevOrigins = isProductionAppEnv() ? [] : [getAndroidDevHost(), "10.0.2.2"];
 const configuredApiUrl = process.env.API_URL;
 
-if (process.env.NODE_ENV === "production" && !configuredApiUrl) {
-  throw new Error("API_URL must point to the deployed FitPulse backend for production builds.");
+if (process.env.NODE_ENV === "production") {
+  if (!configuredApiUrl) {
+    throw new Error("API_URL must point to the deployed FitPulse backend for production builds.");
+  }
+
+  const apiUrl = new URL(configuredApiUrl);
+  if (apiUrl.protocol !== "https:" || apiUrl.hostname.includes("your-fitpulse-backend")) {
+    throw new Error("API_URL must be the real HTTPS production backend URL, not a placeholder.");
+  }
 }
 
 const nextConfig: NextConfig = {
