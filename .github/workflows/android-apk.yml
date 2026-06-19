@@ -7,6 +7,7 @@ on:
       - main
 
 permissions:
+  actions: write
   contents: write
 
 concurrency:
@@ -92,11 +93,31 @@ jobs:
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "apk_name=$apk_name" >> "$GITHUB_OUTPUT"
 
+      - name: Remove previous APK releases and artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 100 --json tagName --jq '.[].tagName' |
+          while read -r tag; do
+            if [[ "$tag" == android-apk-* ]]; then
+              gh release delete "$tag" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes
+            fi
+          done
+
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts" --paginate \
+            --jq '.artifacts[] | select(.name | startswith("FitPulse-")) | .id' |
+          while read -r artifact_id; do
+            if [[ -n "$artifact_id" ]]; then
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id"
+            fi
+          done
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.apk.outputs.apk_name }}
           path: ${{ steps.apk.outputs.apk_name }}
+          retention-days: 7
 
       - name: Publish APK to GitHub Releases
         uses: softprops/action-gh-release@v2
