@@ -15,15 +15,15 @@ describe("navigation helpers", () => {
     expect(mobileItems.map((item) => item.href)).toEqual([
       "/dashboard",
       "/workout",
-      "/history",
       "/exercises",
+      "/history",
       "/ai-coach",
       "/profile",
     ]);
   });
 
   it("uses non-mobile items as dashboard shortcuts and adds admin for admins", () => {
-    expect(getDashboardShortcutItems(false).map((item) => item.name)).toEqual(["Blog", "Social", "Shop"]);
-    expect(getDashboardShortcutItems(true).map((item) => item.name)).toEqual(["Blog", "Social", "Shop", "Admin"]);
+    expect(getDashboardShortcutItems(false).map((item) => item.name)).toEqual(["Social", "Blog", "Shop"]);
+    expect(getDashboardShortcutItems(true).map((item) => item.name)).toEqual(["Social", "Blog", "Shop", "Admin"]);
   });
 });

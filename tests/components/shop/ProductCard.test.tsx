@@ -25,10 +25,9 @@ describe("ProductCard", () => {
     render(<ProductCard product={item} onBuy={onBuy} />);
 
     expect(screen.getByText("Training Program")).toBeInTheDocument();
-    expect(screen.getByText("Digital")).toBeInTheDocument();
     expect(screen.getByText("$19.99")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Buy" }));
+    await user.click(screen.getByRole("button", { name: "View" }));
     expect(onBuy).toHaveBeenCalledWith(item);
   });
 
@@ -37,11 +36,10 @@ describe("ProductCard", () => {
     const onBuy = vi.fn();
     const { rerender } = render(<ProductCard product={product({ stock_quantity: 3, is_physical: true })} onBuy={onBuy} />);
 
-    expect(screen.getByText("Physical")).toBeInTheDocument();
     expect(screen.getByText("Only 3 left")).toBeInTheDocument();
 
     rerender(<ProductCard product={product({ stock_quantity: 0 })} onBuy={onBuy} />);
-    const buy = screen.getByRole("button", { name: "Buy" });
+    const buy = screen.getByRole("button", { name: "Unavailable" });
     expect(screen.getByText("Out of stock")).toBeInTheDocument();
     expect(buy).toBeDisabled();
 

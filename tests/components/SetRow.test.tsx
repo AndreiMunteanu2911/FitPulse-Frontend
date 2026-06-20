@@ -23,7 +23,8 @@ describe("SetRow", () => {
     render(<SetRow {...baseProps} onUpdateSet={onUpdateSet} />);
 
     expect(screen.getByText("6\u00d775")).toBeInTheDocument();
-    const [repsInput, weightInput] = screen.getAllByRole("spinbutton");
+    const repsInput = screen.getByRole("textbox", { name: "Repetitions" });
+    const weightInput = screen.getByRole("textbox", { name: "Weight" });
 
     fireEvent.change(repsInput, { target: { value: "10" } });
     fireEvent.change(weightInput, { target: { value: "82.5" } });
@@ -36,7 +37,7 @@ describe("SetRow", () => {
     const onUpdateSet = vi.fn();
     render(<SetRow {...baseProps} onUpdateSet={onUpdateSet} />);
 
-    const [repsInput] = screen.getAllByRole("spinbutton");
+    const repsInput = screen.getByRole("textbox", { name: "Repetitions" });
     fireEvent.change(repsInput, { target: { value: "" } });
 
     expect(onUpdateSet).toHaveBeenCalledWith(2, 0, "reps", 0);
