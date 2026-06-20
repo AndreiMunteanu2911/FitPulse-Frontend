@@ -112,7 +112,9 @@ function getRuleCategory(rule: FormPatternRule): FormCueCategory {
   return "range_of_motion";
 }
 
-function getPointDistance(a: NormalizedLandmark, b: NormalizedLandmark): number {
+type Point3D = Pick<NormalizedLandmark, "x" | "y"> & { z?: number };
+
+function getPointDistance(a: Point3D, b: Point3D): number {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2 + ((a.z ?? 0) - (b.z ?? 0)) ** 2);
 }
 
