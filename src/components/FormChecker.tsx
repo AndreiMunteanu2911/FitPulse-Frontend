@@ -237,15 +237,28 @@ export function SessionSummaryCard({
           <div className="space-y-4">
             <p className="text-lg leading-relaxed text-[var(--foreground)]">{coaching.summary}</p>
             {coaching.top_cues.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {coaching.top_cues.slice(0, 3).map((cue, index) => (
-                  <div key={`${cue}-${index}`} className="flex items-start gap-3 text-base leading-relaxed text-[var(--foreground)]">
+                  <div key={`${cue}-${index}`} className="flex items-start gap-3 rounded-[var(--radius-lg)] bg-[var(--surface-raised)] p-4 text-base leading-relaxed text-[var(--foreground)]">
                     <span className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--primary-50)] text-xs font-extrabold text-[var(--primary-600)] dark:bg-[var(--primary-100)] dark:text-[var(--primary-700)]">
                       {index + 1}
                     </span>
                     <span>{cue}</span>
                   </div>
                 ))}
+              </div>
+            )}
+            {coaching.rep_observations.length > 0 && (
+              <div className="border-t border-[var(--border)] pt-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--muted-foreground)]">Rep-by-rep evidence</p>
+                <div className="space-y-2">
+                  {coaching.rep_observations.slice(0, 4).map((observation, index) => (
+                    <p key={`${observation}-${index}`} className="text-sm leading-relaxed text-[var(--muted-foreground)]">
+                      <span className="mr-2 font-bold text-[var(--foreground)]">Rep note {index + 1}:</span>
+                      {observation}
+                    </p>
+                  ))}
+                </div>
               </div>
             )}
           </div>
