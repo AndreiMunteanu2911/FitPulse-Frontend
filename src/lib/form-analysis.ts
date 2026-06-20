@@ -235,7 +235,16 @@ export function summarizeRepSamples(
   }));
   const scoredFeedback = groupWorstCueByCategory([...groupedFeedback, ...tempoFeedback]);
   const penalty = scoredFeedback.reduce((sum, item) => (
-    sum + Math.round(SEVERITY_WEIGHT[item.type] * getConfidenceMultiplier(item.confidence))
+    sum + Math.round(
+      SEVERITY_WEIGHT[item.type]
+      * getConfidenceMultiplier(item.confidence)
+      * (item.occurrenceRate === undefined
+        ? 1
+        : Math.max(0.2, Math.min(1, item.occurrenceRate)))
+      * (item.activeDurationMs === undefined
+        ? 1
+        : Math.max(0.35, Math.min(1, item.activeDurationMs / Math.max(350, durationMs * 0.65))))
+    )
   ), 0);
   const warningCount = scoredFeedback.filter((item) => item.type === "warning").length;
   const errorCount = scoredFeedback.filter((item) => item.type === "error").length;

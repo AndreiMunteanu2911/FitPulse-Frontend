@@ -51,7 +51,6 @@ import {
   areLandmarksVisible,
   calculateAngle2D,
   detectCameraAngle,
-  getLandmarkVisibility,
   getSymmetryChecks,
   checkSpinalAlignment,
   LandmarkSmoother,
@@ -63,14 +62,26 @@ import {
   LandmarkStreamRecorder,
   adjustThresholdForConfidence,
   buildSessionAnalysis,
-  categorizeFeedback,
   downgradeSeverityForConfidence,
-  getMetricPhase,
   getScoreBand,
   shouldEvaluateRule,
   shouldUseCloudCoaching,
   summarizeRepSamples,
 } from "@/lib/form-analysis";
+import {
+  MovementPhaseTracker,
+  RepFeedbackAccumulator,
+  dedupeFeedback,
+  enrichFeedbackConfidence,
+  getAdjustedRunningScore,
+  getEffectiveRepWindow,
+  getRepCountingWindow,
+  getRepWindow,
+  getRunningRepAverage,
+  getTrackingQuality,
+  isNearPhaseEndpoint,
+  type TrackingQuality,
+} from "@/components/form-checker/engine";
 
 interface FormCheckerProps {
   exerciseId: string;
@@ -80,8 +91,6 @@ interface FormCheckerProps {
 }
 
 type CameraFacingMode = "user" | "environment";
-type TrackingQuality = "good" | "limited" | "lost";
-
 const DETECTION_CONFIG: DetectionCadenceConfig = {
   targetFps: 28,
   minFrameIntervalMs: Math.round(1000 / 28),
@@ -329,176 +338,6 @@ export function SessionSummaryCard({
   );
 }
 
-function getRepWindow(
-  resolvedRules: ResolvedExerciseFormRules | null,
-): Pick<ResolvedFormRule, "min" | "max" | "visibilityThreshold"> | null {
-  if (!resolvedRules || resolvedRules.rules.length === 0) return null;
-  const primaryLandmarks = resolvedRules.primaryMetric.landmarks.join(",");
-  const angleRules = resolvedRules.rules.filter((rule) => (rule.kind ?? "angle") === "angle" && rule.landmarks.length >= 3);
-  const primaryRules = angleRules.filter((rule) => rule.landmarks.join(",") === primaryLandmarks);
-  const rules = primaryRules.length > 0 ? primaryRules : angleRules;
-  if (rules.length === 0) return null;
-
-  return {
-    min: Math.min(...rules.map((rule) => rule.min)),
-    max: Math.max(...rules.map((rule) => rule.max)),
-    visibilityThreshold: Math.min(...rules.map((rule) => rule.visibilityThreshold)),
-  };
-}
-
-function getEffectiveRepWindow(
-  repWindow: Pick<ResolvedFormRule, "min" | "max" | "visibilityThreshold"> | null,
-  observedRange: { min: number; max: number },
-): Pick<ResolvedFormRule, "min" | "max" | "visibilityThreshold"> | null {
-  if (!repWindow) return null;
-  if (!Number.isFinite(observedRange.min) || !Number.isFinite(observedRange.max)) {
-    return repWindow;
-  }
-
-  const span = observedRange.max - observedRange.min;
-  if (span < 24) {
-    return repWindow;
-  }
-
-  const dynamicMin = observedRange.min + (span * 0.2);
-  const dynamicMax = observedRange.max - (span * 0.2);
-  const min = Math.max(repWindow.min, Math.round(dynamicMin));
-  const max = Math.min(repWindow.max, Math.round(dynamicMax));
-
-  if (min >= max) {
-    return repWindow;
-  }
-
-  return {
-    min,
-    max,
-    visibilityThreshold: repWindow.visibilityThreshold,
-  };
-}
-
-function getRepCountingWindow(
-  repWindow: Pick<ResolvedFormRule, "min" | "max" | "visibilityThreshold"> | null,
-  observedRange: { min: number; max: number },
-): Pick<ResolvedFormRule, "min" | "max" | "visibilityThreshold"> | null {
-  if (!repWindow) return null;
-  if (!Number.isFinite(observedRange.min) || !Number.isFinite(observedRange.max)) {
-    return repWindow;
-  }
-
-  const span = observedRange.max - observedRange.min;
-  if (span < DETECTION_CONFIG.minRepRangeDegrees) {
-    return repWindow;
-  }
-
-  return {
-    min: Math.round(observedRange.min + (span * 0.18)),
-    max: Math.round(observedRange.max - (span * 0.18)),
-    visibilityThreshold: Math.min(repWindow.visibilityThreshold, 0.42),
-  };
-}
-
-function getTrackingQuality({
-  angleStatus,
-  requiredVisibility,
-  calibrationVariance,
-  primaryTrackingLost,
-}: {
-  angleStatus: ReturnType<typeof detectCameraAngle>;
-  requiredVisibility: number;
-  calibrationVariance: number;
-  primaryTrackingLost: boolean;
-}): TrackingQuality {
-  if (primaryTrackingLost || requiredVisibility < 0.35) return "lost";
-  if (angleStatus !== "good" || requiredVisibility < 0.6 || calibrationVariance > 0.012) return "limited";
-  return "good";
-}
-
-function dedupeFeedback(items: FormFeedback[]): FormFeedback[] {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    const key = `${item.type}:${item.message}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
-function getRunningRepAverage(repMetrics: FormRepMetric[]): number {
-  if (repMetrics.length === 0) return 0;
-  return Math.round(repMetrics.reduce((sum, rep) => sum + rep.score, 0) / repMetrics.length);
-}
-
-function getActiveFeedbackPenalty(items: FormFeedback[]): number {
-  const grouped = new Map<string, FormFeedback>();
-  for (const item of items) {
-    if (item.effect === "cue_only" || item.effect === "rep_gate") continue;
-    const category = item.category ?? categorizeFeedback(item);
-    const existing = grouped.get(category);
-    if (!existing || getFeedbackSeverityRank(item.type) > getFeedbackSeverityRank(existing.type)) {
-      grouped.set(category, { ...item, category });
-    }
-  }
-
-  const penalty = Array.from(grouped.values()).reduce((sum, item) => {
-    const confidence = item.confidence ?? 1;
-    const multiplier = confidence >= 0.75 ? 1 : confidence >= 0.55 ? 0.6 : 0.25;
-    if (item.type === "error") return sum + Math.round(16 * multiplier);
-    if (item.type === "warning") return sum + Math.round(7 * multiplier);
-    return sum;
-  }, 0);
-  return Math.min(30, penalty);
-}
-
-function getFeedbackSeverityRank(type: FormFeedback["type"]): number {
-  if (type === "error") return 3;
-  if (type === "warning") return 2;
-  return 1;
-}
-
-function getAdjustedRunningScore(rawScore: number, activeFeedback: FormFeedback[]): number {
-  if (rawScore <= 0) return 0;
-  return Math.max(0, rawScore - getActiveFeedbackPenalty(activeFeedback));
-}
-
-function isNearPhaseEndpoint({
-  phase,
-  phaseLogic,
-  angle,
-  repWindow,
-  confidence,
-}: {
-  phase: "eccentric" | "concentric" | "unknown";
-  phaseLogic?: ExerciseFormRules["primaryMetric"]["phaseLogic"];
-  angle: number;
-  repWindow: Pick<ResolvedFormRule, "min" | "max" | "visibilityThreshold"> | null;
-  confidence: number;
-}): boolean {
-  if (phase === "unknown" || angle < 0 || !repWindow) return false;
-
-  const logic = phaseLogic ?? "flexion_extension";
-  const movingTowardMin = logic === "flexion_extension" || logic === "cyclic"
-    ? phase === "eccentric"
-    : logic === "extension_flexion"
-      ? phase === "concentric"
-      : phase === "eccentric";
-  const target = movingTowardMin ? repWindow.min : repWindow.max;
-  const tolerance = confidence < 0.72 ? 16 : 12;
-
-  return Math.abs(angle - target) <= tolerance;
-}
-
-function enrichFeedbackConfidence(items: FormFeedback[], landmarks: NormalizedLandmark[]): FormFeedback[] {
-  return items.map((item) => ({
-    ...item,
-    category: item.category ?? categorizeFeedback(item),
-    confidence: item.confidence ?? (
-      item.landmarkIndices && item.landmarkIndices.length > 0
-        ? getLandmarkVisibility(landmarks, item.landmarkIndices)
-        : 1
-    ),
-  }));
-}
-
 function capitalizeFirstWord(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return value;
@@ -543,6 +382,8 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
   const COACHING_TIMEOUT_MS = 180000;
 
   const tempoTrackerRef = useRef(new TempoTracker());
+  const movementPhaseTrackerRef = useRef(new MovementPhaseTracker());
+  const repFeedbackAccumulatorRef = useRef(new RepFeedbackAccumulator());
   const jitterDetectorRef = useRef(new JitterDetector());
   const visualLandmarkSmootherRef = useRef(new LandmarkSmoother({
     positionAlpha: 0.74,
@@ -568,9 +409,7 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
   const sessionStartRef = useRef(performance.now());
   const sessionStartedRef = useRef(false);
   const repCountRef = useRef(0);
-  const primaryAngleRef = useRef<number | null>(null);
   const currentRepSamplesRef = useRef<FormMetricSample[]>([]);
-  const currentRepFeedbackRef = useRef<FormFeedback[]>([]);
   const currentRepGateFailuresRef = useRef(0);
   const completedRepMetricsRef = useRef<FormRepMetric[]>([]);
   const realtimeFeedbackLogRef = useRef<FormFeedback[]>([]);
@@ -638,11 +477,13 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
     const updateSize = () => {
       if (!canvasContainerRef.current) return;
       const { width, height } = canvasContainerRef.current.getBoundingClientRect();
+      if (width <= 0 || height <= 0) return;
       setCanvasSize({ width: Math.floor(width), height: Math.floor(height) });
     };
     updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
+    const observer = new ResizeObserver(updateSize);
+    if (canvasContainerRef.current) observer.observe(canvasContainerRef.current);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -689,6 +530,8 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
   const resetSessionState = useCallback(() => {
     reviewModeRef.current = false;
     tempoTrackerRef.current.reset();
+    movementPhaseTrackerRef.current.reset();
+    repFeedbackAccumulatorRef.current.reset();
     jitterDetectorRef.current.reset();
     visualLandmarkSmootherRef.current.reset();
     ruleLandmarkSmootherRef.current.reset();
@@ -717,9 +560,7 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
     setCoachingError("");
     setCoachingLoading(false);
     setStartingDetection(false);
-    primaryAngleRef.current = null;
     currentRepSamplesRef.current = [];
-    currentRepFeedbackRef.current = [];
     currentRepGateFailuresRef.current = 0;
     completedRepMetricsRef.current = [];
     realtimeFeedbackLogRef.current = [];
@@ -1012,8 +853,9 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
           calibrationBadFramesRef.current = DETECTION_CONFIG.exitCalibrationFrames;
           primaryMissingFramesRef.current += 1;
           if (primaryMissingFramesRef.current >= DETECTION_CONFIG.primaryLossResetFrames) {
-            primaryAngleRef.current = null;
             currentRepSamplesRef.current = [];
+            movementPhaseTrackerRef.current.reset();
+            repFeedbackAccumulatorRef.current.reset();
           }
         }
         const timestampMs = Math.max(0, Math.round(performance.now() - sessionStartRef.current));
@@ -1146,8 +988,11 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
             min: Math.min(observedPrimaryRangeRef.current.min, primaryAngle),
             max: Math.max(observedPrimaryRangeRef.current.max, primaryAngle),
           };
-          currentPhase = getMetricPhase(primaryAngleRef.current, primaryAngle, resolvedRules.primaryMetric.phaseLogic);
-          primaryAngleRef.current = primaryAngle;
+          currentPhase = movementPhaseTrackerRef.current.update(
+            primaryAngle,
+            timestampMs,
+            resolvedRules.primaryMetric.phaseLogic,
+          );
           currentRepSamplesRef.current.push({
             timestampMs,
             angle: primaryAngle,
@@ -1157,9 +1002,10 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
       } else {
         primaryMissingFramesRef.current += 1;
         if (primaryMissingFramesRef.current >= DETECTION_CONFIG.primaryLossResetFrames) {
-          primaryAngleRef.current = null;
           currentRepSamplesRef.current = [];
           currentRepGateFailuresRef.current = 0;
+          movementPhaseTrackerRef.current.reset();
+          repFeedbackAccumulatorRef.current.reset();
           observedPrimaryRangeRef.current = {
             min: Number.POSITIVE_INFINITY,
             max: Number.NEGATIVE_INFINITY,
@@ -1184,7 +1030,6 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
 
       if (primaryTrackingLost) {
         trackedRulesRef.current = {};
-        currentRepFeedbackRef.current = [];
         commitStableFeedback([], timestampMs, true);
         previousEvaluationLandmarksRef.current = smoothedLandmarks.map((landmark) => ({ ...landmark }));
         previousEvaluationTimestampRef.current = timestampMs;
@@ -1372,17 +1217,20 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
         setFormScore(getAdjustedRunningScore(runningAverage, activeScoredFeedback));
       }
 
-      currentRepFeedbackRef.current = dedupeFeedback([
-        ...currentRepFeedbackRef.current,
-        ...stableFeedbackRef.current.items,
-      ]).slice(-8);
+      // Score the currently evaluated cues; the UI TTL is intentionally excluded
+      // so a brief fault is not counted for the full time it remains visible.
+      repFeedbackAccumulatorRef.current.addFrame(dedupedFeedback, timestampMs);
       realtimeFeedbackLogRef.current = dedupeFeedback([
         ...realtimeFeedbackLogRef.current,
         ...stableFeedbackRef.current.items,
       ]).slice(-20);
 
       if (primaryAngle >= 0 && repWindow && resolvedRules && currentPhase !== "unknown") {
-        const effectiveRepWindow = getRepCountingWindow(repWindow, observedPrimaryRangeRef.current) ?? repWindow;
+        const effectiveRepWindow = getRepCountingWindow(
+          repWindow,
+          observedPrimaryRangeRef.current,
+          DETECTION_CONFIG.minRepRangeDegrees,
+        ) ?? repWindow;
         const observedSpan = observedPrimaryRangeRef.current.max - observedPrimaryRangeRef.current.min;
         const hasEnoughRepRange = Number.isFinite(observedSpan) && observedSpan >= DETECTION_CONFIG.minRepRangeDegrees;
         const repResult = hasEnoughRepRange && tempoTrackerRef.current.checkRep(
@@ -1390,16 +1238,17 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
             effectiveRepWindow.min,
             effectiveRepWindow.max,
             resolvedRules.primaryMetric.phaseLogic,
-          );
+        );
         if (repResult) {
-          const nextRep = repCountRef.current + 1;
+          const gatePassed = currentRepGateFailuresRef.current === 0;
+          const nextRep = repCountRef.current + (gatePassed ? 1 : 0);
           const repMetric = summarizeRepSamples(
-            nextRep,
+            Math.max(1, nextRep),
             currentRepSamplesRef.current,
-            currentRepFeedbackRef.current,
+            repFeedbackAccumulatorRef.current.snapshot(),
             resolvedRules.pattern,
           );
-          if (repMetric) {
+          if (repMetric && gatePassed) {
             completedRepMetricsRef.current.push(repMetric);
             setFormScore(getAdjustedRunningScore(
               getRunningRepAverage(completedRepMetricsRef.current),
@@ -1420,17 +1269,19 @@ export default function FormChecker({ exerciseId, exerciseName, formRules, onClo
             }
           }
 
-          repCountRef.current = nextRep;
-          setRepCount(nextRep);
-          stableFeedbackRef.current.recentRepDetectedUntilMs = timestampMs + 1200;
-          setRecentRepDetected(true);
+          if (gatePassed) {
+            repCountRef.current = nextRep;
+            setRepCount(nextRep);
+            stableFeedbackRef.current.recentRepDetectedUntilMs = timestampMs + 1200;
+            setRecentRepDetected(true);
+          }
           currentRepSamplesRef.current = primaryAngle >= 0 ? [{
             timestampMs,
             angle: primaryAngle,
             phase: currentPhase,
           }] : [];
-          currentRepFeedbackRef.current = [];
           currentRepGateFailuresRef.current = 0;
+          repFeedbackAccumulatorRef.current.reset();
         }
       }
 

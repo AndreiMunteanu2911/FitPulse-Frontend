@@ -166,7 +166,7 @@ export function PoseCanvas({
       ref={canvasRef}
       width={canvasWidth}
       height={canvasHeight}
-      className="absolute inset-0 z-10 pointer-events-none"
+      className="absolute inset-0 z-10 h-full w-full pointer-events-none"
     />
   );
 }

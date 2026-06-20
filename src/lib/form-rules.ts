@@ -124,6 +124,19 @@ function getMidpoint(a: NormalizedLandmark, b: NormalizedLandmark): { x: number;
   };
 }
 
+function getTorsoCenter(landmarks: NormalizedLandmark[]): { x: number; y: number; z: number } | null {
+  const points = [landmarks[11], landmarks[12], landmarks[23], landmarks[24]].filter(Boolean);
+  if (points.length < 4) return null;
+  return points.reduce(
+    (sum, point) => ({
+      x: sum.x + (point.x / points.length),
+      y: sum.y + (point.y / points.length),
+      z: sum.z + ((point.z ?? 0) / points.length),
+    }),
+    { x: 0, y: 0, z: 0 },
+  );
+}
+
 function getBodyScale(landmarks: NormalizedLandmark[], bodyScale: FormPatternRuleBodyScale = "torso"): number {
   const leftShoulder = landmarks[11];
   const rightShoulder = landmarks[12];
@@ -231,11 +244,25 @@ export function evaluateFormRule(
     const previousTimestampMs = context.previousTimestampMs;
     if (previous && previousTimestampMs !== null && previousTimestampMs !== undefined && context.timestampMs > previousTimestampMs) {
       const deltaSeconds = Math.max(0.016, (context.timestampMs - previousTimestampMs) / 1000);
+      const currentCenter = getTorsoCenter(landmarks);
+      const previousCenter = getTorsoCenter(previous);
+      const previousScale = getBodyScale(previous, rule.bodyScale);
       value = Math.max(...rule.landmarks.map((index) => {
         const current = landmarks[index];
         const last = previous[index];
         if (!current || !last) return 0;
-        return (getPointDistance(current, last) / scale) / deltaSeconds;
+        if (!currentCenter || !previousCenter) return (getPointDistance(current, last) / scale) / deltaSeconds;
+        const currentRelative = {
+          x: (current.x - currentCenter.x) / scale,
+          y: (current.y - currentCenter.y) / scale,
+          z: ((current.z ?? 0) - currentCenter.z) / scale,
+        };
+        const previousRelative = {
+          x: (last.x - previousCenter.x) / previousScale,
+          y: (last.y - previousCenter.y) / previousScale,
+          z: ((last.z ?? 0) - previousCenter.z) / previousScale,
+        };
+        return getPointDistance(currentRelative, previousRelative) / deltaSeconds;
       }));
     }
   } else if (kind === "torso_angle") {

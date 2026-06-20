@@ -105,6 +105,10 @@ export interface FormSessionFeedbackItem {
   category?: FormCueCategory;
   confidence?: number;
   effect?: FormPatternRuleEffect;
+  /** Portion of analyzed rep frames in which this cue was active (0-1). */
+  occurrenceRate?: number;
+  /** Approximate time the cue remained active during the rep. */
+  activeDurationMs?: number;
 }
 
 export interface FormLandmarkSample {

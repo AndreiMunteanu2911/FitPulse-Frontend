@@ -189,23 +189,29 @@ export class LandmarkSmoother {
 
 interface RepTrackerState {
   lastAngle: number | null;
+  filteredVelocity: number;
+  lastTimestampMs: number | null;
   phase: "unknown" | "eccentric" | "concentric";
-  reachedStart: boolean;
-  reachedEnd: boolean;
+  movementState: "ready" | "eccentric" | "bottom" | "concentric" | "lockout";
+  stateEnteredMs: number;
   lastRepTime: number;
 }
 
 export class TempoTracker {
   private state: RepTrackerState = {
     lastAngle: null,
+    filteredVelocity: 0,
+    lastTimestampMs: null,
     phase: "unknown",
-    reachedStart: false,
-    reachedEnd: false,
+    movementState: "ready",
+    stateEnteredMs: 0,
     lastRepTime: 0,
   };
 
   private readonly cooldownMs = 350;
   private readonly hysteresis = 10;
+  private readonly minimumStateMs = 90;
+  private readonly velocityAlpha = 0.35;
 
   checkRep(
     angle: number,
@@ -214,33 +220,46 @@ export class TempoTracker {
     phaseLogic: PrimaryMetricPhaseLogic = "flexion_extension",
   ): boolean {
     const now = performance.now();
-    const angleDelta = this.state.lastAngle === null ? 0 : angle - this.state.lastAngle;
+    const elapsedSeconds = this.state.lastTimestampMs === null
+      ? 0
+      : Math.max(0.016, (now - this.state.lastTimestampMs) / 1000);
+    const rawVelocity = this.state.lastAngle === null || elapsedSeconds === 0
+      ? 0
+      : (angle - this.state.lastAngle) / elapsedSeconds;
+    this.state.filteredVelocity = (rawVelocity * this.velocityAlpha)
+      + (this.state.filteredVelocity * (1 - this.velocityAlpha));
     this.state.lastAngle = angle;
+    this.state.lastTimestampMs = now;
 
-    if (Math.abs(angleDelta) < 0.9) return false;
-
-    const movingTowardMin = phaseLogic === "flexion_extension" || phaseLogic === "cyclic"
-      ? angleDelta < 0
-      : phaseLogic === "extension_flexion"
-        ? angleDelta > 0
-        : angleDelta < 0;
-
-    this.state.phase = movingTowardMin ? "eccentric" : "concentric";
+    const isMoving = Math.abs(this.state.filteredVelocity) >= 8;
+    if (isMoving) {
+      const movingTowardMin = phaseLogic === "flexion_extension" || phaseLogic === "cyclic"
+        ? this.state.filteredVelocity < 0
+        : phaseLogic === "extension_flexion"
+          ? this.state.filteredVelocity > 0
+          : this.state.filteredVelocity < 0;
+      this.state.phase = movingTowardMin ? "eccentric" : "concentric";
+    }
 
     const nearMin = angle <= (minAngle + this.hysteresis);
     const nearMax = angle >= (maxAngle - this.hysteresis);
 
-    if (nearMin) this.state.reachedStart = true;
-    if (nearMax && this.state.reachedStart) this.state.reachedEnd = true;
+    const stateAge = now - this.state.stateEnteredMs;
+    const transition = (next: RepTrackerState["movementState"]) => {
+      this.state.movementState = next;
+      this.state.stateEnteredMs = now;
+    };
 
-    if (
-      this.state.reachedStart
-      && this.state.reachedEnd
-      && this.state.phase === "concentric"
-      && now - this.state.lastRepTime > this.cooldownMs
-    ) {
-      this.state.reachedStart = false;
-      this.state.reachedEnd = false;
+    const eccentricEndpointReached = phaseLogic === "extension_flexion" ? nearMax : nearMin;
+    const concentricEndpointReached = phaseLogic === "extension_flexion" ? nearMin : nearMax;
+
+    if (this.state.movementState === "ready" && eccentricEndpointReached) transition("bottom");
+    else if (this.state.movementState === "ready" && isMoving && this.state.phase === "eccentric") transition("eccentric");
+    else if (this.state.movementState === "eccentric" && eccentricEndpointReached && stateAge >= this.minimumStateMs) transition("bottom");
+    else if (this.state.movementState === "bottom" && this.state.phase === "concentric" && stateAge >= this.minimumStateMs) transition("concentric");
+    else if (this.state.movementState === "concentric" && concentricEndpointReached && stateAge >= this.minimumStateMs) transition("lockout");
+    else if (this.state.movementState === "lockout" && stateAge >= this.minimumStateMs && now - this.state.lastRepTime > this.cooldownMs) {
+      transition("ready");
       this.state.lastRepTime = now;
       return true;
     }
@@ -251,9 +270,11 @@ export class TempoTracker {
   reset(): void {
     this.state = {
       lastAngle: null,
+      filteredVelocity: 0,
+      lastTimestampMs: null,
       phase: "unknown",
-      reachedStart: false,
-      reachedEnd: false,
+      movementState: "ready",
+      stateEnteredMs: 0,
       lastRepTime: 0,
     };
   }
@@ -268,11 +289,30 @@ export class JitterDetector {
   ) {}
 
   addFrame(landmarks: NormalizedLandmark[]): void {
+    const torsoPoints = [landmarks[11], landmarks[12], landmarks[23], landmarks[24]].filter(Boolean);
+    if (torsoPoints.length < 4) return;
+    const center = torsoPoints.reduce(
+      (sum, point) => ({ x: sum.x + point.x, y: sum.y + point.y, z: sum.z + (point.z ?? 0) }),
+      { x: 0, y: 0, z: 0 },
+    );
+    center.x /= torsoPoints.length;
+    center.y /= torsoPoints.length;
+    center.z /= torsoPoints.length;
+    const shoulderMidY = ((landmarks[11]?.y ?? 0) + (landmarks[12]?.y ?? 0)) / 2;
+    const hipMidY = ((landmarks[23]?.y ?? 0) + (landmarks[24]?.y ?? 0)) / 2;
+    const torsoScale = Math.max(0.08, Math.abs(hipMidY - shoulderMidY));
+
     for (let i = 0; i < landmarks.length; i += 1) {
       const landmark = landmarks[i];
       if (!landmark) continue;
       if (!this.history[i]) this.history[i] = [];
-      this.history[i].push({ x: landmark.x, y: landmark.y, z: landmark.z ?? 0 });
+      // Torso-relative coordinates remove camera translation and distance changes
+      // before movement stability is evaluated.
+      this.history[i].push({
+        x: (landmark.x - center.x) / torsoScale,
+        y: (landmark.y - center.y) / torsoScale,
+        z: ((landmark.z ?? 0) - center.z) / torsoScale,
+      });
       if (this.history[i].length > this.maxFrames) {
         this.history[i].shift();
       }
